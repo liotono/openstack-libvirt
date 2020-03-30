@@ -1,0 +1,32 @@
+---
+network:
+  version: 2
+  bridges:
+    br-mgmt:
+      interfaces: [ens6]
+      addresses: [172.29.236.31/24]
+      dhcp4: no
+    br-vxlan:
+      interfaces: [ens7]
+      addresses: [172.29.240.31/24]
+      dhcp4: no
+    br-storage:
+      interfaces: [ens8]
+      addresses: [172.29.244.31/24]
+      dhcp4: no
+    br-vlan:
+      interfaces: [ens9]
+      dhcp4: no
+  ethernets:
+    ens6:
+      dhcp4: no
+      dhcp6: no
+    ens7:
+      dhcp4: no
+      dhcp6: no
+    ens8:
+      dhcp4: no
+      dhcp6: no
+    ens9:
+      dhcp4: no
+      dhcp6: no

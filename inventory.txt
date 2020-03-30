@@ -1,0 +1,47 @@
+
+# Nodes
+# Deployment
+deployment00 ansible_host=deployment00 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# LB
+lb00 ansible_host=lb00 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# Controller
+controller00 ansible_host=controller00 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+controller01 ansible_host=controller01 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# Compute
+compute00 ansible_host=compute00 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+compute01 ansible_host=compute01 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+# compute02 ansible_host=compute02 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+# Network
+network00 ansible_host=network00 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+# network01 ansible_host=network01 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+# network02 ansible_host=network02 ansible_user=vagrant ansible_password=vagrant ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+[deployment_nodes]
+deployment00
+
+[lb_nodes]
+lb00
+
+[controller_nodes]
+controller0[0:1]
+
+[compute_nodes]
+compute0[0:1]
+
+[network_nodes]
+network00
+
+[openstack_nodes:children]
+controller_nodes
+compute_nodes
+network_nodes
+
+[infrastructure_nodes:children]
+controller_nodes
+compute_nodes
+network_nodes
+lb_nodes

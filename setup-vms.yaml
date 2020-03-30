@@ -1,0 +1,144 @@
+---
+- name: Setting up OpenStack nodes
+  hosts: all
+  become: yes
+  tasks:
+  - name: Updating the nodes
+    apt:
+      upgrade: dist
+  tags:
+  - settingupnodes
+
+# Make sure there's a corresponding YAML file inside network-config
+- name: Copying networking file to the controller nodes
+  hosts: controller_nodes
+  become: yes
+  tasks:
+  - copy:
+      src: "network-config/{{ ansible_host }}-network.yaml"
+      dest: "/etc/netplan/50-vagrant.yaml"
+  tags:
+  - networking
+  - networking_controllers
+
+- name: Copying networking file to the compute nodes
+  hosts: compute_nodes
+  become: yes
+  tasks:
+  - copy:
+      src: "network-config/{{ ansible_host }}-network.yaml"
+      dest: "/etc/netplan/50-vagrant.yaml"
+  tags:
+  - networking
+  - networking_computes
+
+- name: Copying networking file to the network nodes
+  hosts: network_nodes
+  become: yes
+  tasks:
+  - copy:
+      src: "network-config/{{ ansible_host }}-network.yaml"
+      dest: "/etc/netplan/50-vagrant.yaml"
+  tags:
+  - networking
+  - networking_network
+
+- name: Apply networking on all OpenStack nodes
+  hosts: openstack_nodes
+  become: yes
+  tasks:
+  - name: Issuing netplan generate
+    command: netplan generate 
+  - name: Issuing netplan apply
+    command: netplan apply
+  tags:
+  - networking
+  - networking_computes
+  - networking_network
+  - networking_controllers
+
+- name: Adding swap to every node
+  hosts: all
+  become: yes
+  tasks:
+  - name: Check if the /swapfile has been created
+    stat:
+      path: /swapfile
+    register: output
+  - name: Allocating swap file in /swapfile
+    shell: "fallocate -l {{ ansible_memtotal_mb *2 }}M /swapfile"
+    when: output.stat.exists == False
+  - name: Filling swap file with zero's
+    shell: "dd if=/dev/zero of=/swapfile bs=1M count={{ ansible_memtotal_mb *2 }}"
+    when: output.stat.exists == False
+  - name: Setting up the swap file and activating it
+    shell: "chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile"
+    when: output.stat.exists == False
+  - name: Adding the swap entry in /etc/fstab to make it persistent
+    shell: "echo '/swapfile swap swap defaults 0 0' >> /etc/fstab"
+    when: output.stat.exists == False
+  tags:
+  - setupswap
+
+- name: Preparing ansible OpenStack
+  hosts: deployment_nodes
+  become: yes
+  tasks:
+  - name: Cloning the OpenStack-Ansible repository on the deployment node
+    git:
+      repo: https://opendev.org/openstack/openstack-ansible
+      dest: /opt/openstack-ansible
+      version: master
+  - name: Bootstrapping ansible
+    command: scripts/bootstrap-ansible.sh
+    args:
+      chdir: /opt/openstack-ansible
+  - name: Copying etc/openstack_deploy into /etc
+    command: cp -r /opt/openstack-ansible/etc/openstack_deploy /etc
+  - name: Copying openstack_user_variables.yaml into /etc/openstack_deploy
+    copy:
+      src: openstack_user_config.yml
+      dest: /etc/openstack_deploy
+    tags:
+    - copyinguserconfig
+  - name: Copying openstack_user_variables.yaml into /etc/openstack_deploy/openstack_user_variables.yml
+    copy:
+      src: openstack_user_config.yml
+      dest: /etc/openstack_deploy/openstack_user_variables.yml
+    tags:
+    - copyinguserconfig
+  - name: Generaring random passphrases for the various OpenStack services
+    command: python pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
+    args:
+      chdir: /opt/openstack-ansible/scripts
+  tags:
+  - openstackansiblesetup
+
+- name: Fetching the public key from the deployment node
+  hosts: deployment_nodes
+  become: yes
+  tasks:
+  - name: Fetching public key from controller
+    fetch:
+      dest: authorized_keys
+      src: /root/.ssh/id_rsa.pub
+      flat: yes
+  tags:
+  - copyingpublickey
+
+- name: Copything SSH public key to the deploy nodes
+  hosts: infrastructure_nodes
+  become: yes
+  tasks:
+  - name: Making sure that the /root/.ssh directory exists
+    file:
+      mode: '0700'
+      state: directory
+      path: /root/.ssh
+  - name: Copying public key to the authorized_keys file
+    copy:
+      src: authorized_keys
+      mode: '0600'
+      dest: /root/.ssh/authorized_keys
+  tags:
+  - copyingpublickey
