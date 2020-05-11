@@ -1,3 +1,4 @@
+
 ---
 # Copyright 2014, Rackspace US, Inc.
 #
@@ -89,10 +90,33 @@ cidr_networks:
 # network device management.
 #
 used_ips:
-- "172.29.236.10,172.29.236.11"
-- "172.29.240.10,172.29.240.11"
-- "172.29.244.10,172.29.244.11"
-- "172.29.236.117"
+- "192.168.15.2"
+- "192.168.100.41"
+- "172.29.240.41"
+- "172.29.236.41"
+- "172.29.244.41"
+- "192.168.15.99"
+- "192.168.100.31"
+- "172.29.236.31"
+- "172.29.240.31"
+- "172.29.244.31"
+- "192.168.15.100"
+- "192.168.100.40"
+- "172.29.236.40"
+- "172.29.240.40"
+- "172.29.244.40"
+- "192.168.15.98"
+- "192.168.100.30"
+- "172.29.240.30"
+- "172.29.236.30"
+- "172.29.244.30"
+- "192.168.15.3"
+- "192.168.100.50"
+- "172.29.240.50"
+- "172.29.236.50"
+- "172.29.244.50"
+- "172.29.236.20"
+- "192.168.100.20"
 #   - "172.29.236.100,172.29.236.200"
 #   - "172.29.240.100,172.29.240.200"
 #   - "172.29.244.100,172.29.244.200"
@@ -284,24 +308,22 @@ global_overrides:
       type: "vxlan"
       range: "1:1000"
       net_name: "vxlan"
-#     - network:
-#         group_binds:
-#           - neutron_linuxbridge_agent
-#         container_bridge: "br-vlan"
-#         container_type: "veth"
-#         container_interface: "eth11"
-#         type: "vlan"
-#         range: "101:200,301:400"
-#         net_name: "vlan"
-#     - network:
-#         group_binds:
-#           - neutron_linuxbridge_agent
-#         container_bridge: "br-vlan"
-#         container_type: "veth"
-#         container_interface: "eth12"
-#         host_bind_override: "eth12"
-#         type: "flat"
-#         net_name: "flat"
+  - network:
+      group_binds:
+        - neutron_linuxbridge_agent
+      container_bridge: "br-vlan"
+      container_type: "veth"
+      container_interface: "eth11"
+      type: "vlan"
+      range: "101:200,301:400"
+      net_name: "vlan"
+  - network:
+      container_bridge: "br-ext"
+      container_type: "veth"
+      type: "flat"
+      net_name: "flat"
+      group_binds:
+        - network_hosts
 #
 # --------
 #
@@ -493,8 +515,8 @@ network_hosts:
 compute_hosts:
   compute00:
     ip: 172.29.236.40
-  compute01:
-    ip: 172.29.236.41
+#  compute01:
+#    ip: 172.29.236.41
 #
 # --------
 #

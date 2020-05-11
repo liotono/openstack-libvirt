@@ -1,0 +1,8 @@
+---
+- name: Updating all OpenStack nodes
+  hosts: all
+  become: yes
+  tasks:
+  - name: Updating the nodes
+    apt:
+      upgrade: dist

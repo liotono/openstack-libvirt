@@ -21,10 +21,10 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 # Node types
 # DON'T FORGET TO UPDATE THE ANSIBLE INVENTORY FILE (inventory.txt)
-deployment = { :count => 1, :start_ip => 10, :memory => 1024, cpus: 2 }
+deployment = { :count => 0, :start_ip => 10, :memory => 5120, cpus: 4 }
 lb         = { :count => 1, :start_ip => 20, :memory => 2048, cpus: 2 }
-controller = { :count => 2, :start_ip => 30, :memory => 2048, cpus: 2 }
-compute    = { :count => 2, :start_ip => 40, :memory => 4096, cpus: 2 }
+controller = { :count => 2, :start_ip => 30, :memory => 4096, cpus: 2 }
+compute    = { :count => 1, :start_ip => 40, :memory => 4096, cpus: 2 }
 network    = { :count => 1, :start_ip => 50, :memory => 2048, cpus: 2 }
 ceph       = { :count => 3, :start_ip => 60, :memory => 1024, cpus: 4 }
 
@@ -34,7 +34,7 @@ Vagrant.configure("2") do |config|
   # For vagrant hostmanager plugin
   config.hostmanager.enabled = true
   config.hostmanager.manage_host = true
-  config.hostmanager.ignore_private_ip = false
+  config.hostmanager.ignore_private_ip = true
 
   # Define the pool from which the 
   config.vm.provider :libvirt do |libvirt|
@@ -46,12 +46,12 @@ Vagrant.configure("2") do |config|
     hostname = "deployment%02d" % [i]
     ip = "#{deployment[:start_ip]+i}"
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-server-18.04-testing"
+      box.vm.box = "ubuntu-bionic-openstack"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
       # Managment network
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0" 
+      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0"
       # Network for accessing the public IP address of the API
       box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
@@ -66,7 +66,7 @@ Vagrant.configure("2") do |config|
     hostname = "lb%02d" % [i]
     ip = "#{lb[:start_ip]+i}"
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-server-18.04-testing"
+      box.vm.box = "ubuntu-bionic-openstack"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
@@ -84,14 +84,15 @@ Vagrant.configure("2") do |config|
     hostname = "controller%02d" % [i]
     ip = "#{controller[:start_ip]+i}"
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-server-18.04-testing"
+      box.vm.box = "ubuntu-bionic-openstack"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.16.0.#{ip}", :netmask => "255.255.255.0"
+      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      # box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      # Provider Network
+      # box.vm.network :public_network, :dev => "ovs-ext", :mode => "bridge", :type => "bridge", :ovs => true
       box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
         domain.memory = controller[:memory]
@@ -105,15 +106,17 @@ Vagrant.configure("2") do |config|
     hostname = "compute%02d" % [i]
     ip = "#{compute[:start_ip]+i}"
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-server-18.04-testing"
+      box.vm.box = "ubuntu-bionic-openstack"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.16.0.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
+      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      box.vm.network :private_network, ip: "172.29.248.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      # Provider Network
+      # box.vm.network :public_network, :dev => "ovs-ext", :mode => "bridge", :type => "bridge", :ovs => true
+      # box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
         domain.memory = compute[:memory]
         domain.cpus = compute[:cpus]
@@ -128,15 +131,17 @@ Vagrant.configure("2") do |config|
     hostname = "network%02d" % [i]
     ip = "#{network[:start_ip]+i}"
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-server-18.04-testing"
+      box.vm.box = "ubuntu-bionic-openstack"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, ip: "172.16.0.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
+      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      # box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      box.vm.network :private_network, ip: "172.29.248.#{ip}", :netmask => "255.255.255.0", auto_config: false
+      # Provider Network
+      box.vm.network :public_network, :dev => "ovs-ext", :mode => "bridge", :type => "bridge", :ovs => true, auto_config: false
+      # box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
         domain.memory = network[:memory]
         domain.cpus = network[:cpus]
@@ -149,7 +154,7 @@ Vagrant.configure("2") do |config|
 #    hostname = "compute-%02d" % [i]
 #    ip = "#{lb[:start_ip]+i}"
 #    config.vm.define "#{hostname}" do |box|
-#      box.vm.box = "ubuntu-server-18.04-testing"
+#      box.vm.box = "ubuntu-bionic-openstack"
 #      box.vm.hostname = "#{hostname}"
 #      box.vm.synced_folder ".", "/vagrant", disabled: true
 #      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
@@ -164,5 +169,4 @@ Vagrant.configure("2") do |config|
 #      end
 #    end
 #  end
-
 end

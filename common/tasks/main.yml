@@ -1,0 +1,36 @@
+---
+# tasks file for common
+- name: Updating the nodes
+  apt:
+    upgrade: dist
+
+- name: Check if the /swapfile has been created
+  stat:
+    path: /swapfile
+  register: output
+  tags:
+  - setupswap
+
+- name: Allocating swap file in /swapfile
+  shell: "fallocate -l {{ ansible_memtotal_mb *2 }}M /swapfile"
+  when: output.stat.exists == False
+  tags:
+  - setupswap
+
+- name: Filling swap file with zero's
+  shell: "dd if=/dev/zero of=/swapfile bs=1M count={{ ansible_memtotal_mb *2 }}"
+  when: output.stat.exists == False
+  tags:
+  - setupswap
+
+- name: Setting up the swap file and activating it
+  shell: "chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile"
+  when: output.stat.exists == False
+  tags:
+  - setupswap
+
+- name: Adding the swap entry in /etc/fstab to make it persistent
+  shell: "echo '/swapfile swap swap defaults 0 0' >> /etc/fstab"
+  when: output.stat.exists == False
+  tags:
+  - setupswap

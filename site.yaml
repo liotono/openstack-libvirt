@@ -1,0 +1,137 @@
+---
+
+- name: Updating nodes in the environment and adding swap to them
+  hosts: all
+  become: yes
+  roles:
+  - common
+  tags:
+  - updatingnodes
+
+#- name: Setting up Open vSwitch in compute and controller nodes
+#  hosts: openstack_nodes,!network_nodes
+#  vars:
+#    bridges:
+#    - { bridge: "br-mgmt",    iface: "ens6" }
+#    - { bridge: "br-vxlan",   iface: "ens7" }
+#    - { bridge: "br-storage", iface: "ens8" }
+#  become: yes
+#  roles:
+#  - openvswitch
+#  tags:
+#  - openvswitch_computes
+#  - openvswitch_network
+#  - openvswitch
+#  - openvswitch_controllers
+#
+#- name: Setting up Open vSwitch in network nodes
+#  hosts: network_nodes
+#  vars:
+#    bridges:
+#    - { bridge: "br-mgmt",    iface: "ens6" }
+#    - { bridge: "br-vxlan",   iface: "ens7" }
+#    - { bridge: "br-storage", iface: "ens8" }
+#    - { bridge: "br-vlan",    iface: "ens9" }
+#    - { bridge: "br-ext",     iface: "ens10" }
+#  become: yes
+#  roles:
+#  - openvswitch
+#  tags:
+#  - openvswitch_network
+#  - openvswitch
+#
+- name: Setting up networking in controller nodes
+  hosts: controller_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_controllers
+  vars:
+    bridges:
+    - br-mgmt
+    - br-storage
+    nodetype: controller
+
+- name: Setting up networking in compute nodes
+  hosts: compute_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_computes
+  vars:
+    bridges:
+    - br-mgmt
+    - br-vxlan
+    - br-storage
+    - br-vlan
+    nodetype: compute
+
+- name: Setting up networking in network nodes
+  hosts: network_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_network
+  vars:
+    bridges:
+    - br-mgmt
+    - br-vxlan
+    - br-vlan
+    - br-ext
+    nodetype: network
+
+- name: Cloning, preparing and bootstrapping OpenStack-Ansible
+  hosts: deployment_nodes
+  become: yes
+  roles:
+  - openstack-ansible
+  tags:
+  - openstackansiblesetup
+
+# Hack to Use Open vSwitch, otherwise restarting an LXC
+# container will break its network interfaces
+#- name: Copying a modified version of veth-cleanup.sh.j2
+#  hosts: deployment_nodes
+#  become: yes
+#  tasks:
+#  - name: Copying veth-cleanup.sh.j2 to /etc/ansible/roles/lxc_container_create/templates
+#    copy:
+#      src: veth-cleanup.sh.j2
+#      dest: /etc/ansible/roles/lxc_container_create/templates
+#  tags:
+#  - veth-cleanup
+
+- name: Fetching the public key from the deployment node
+  hosts: deployment_nodes
+  become: yes
+  tasks:
+  - name: Fetching public key from deployment node
+    fetch:
+      dest: authorized_keys
+      src: /root/.ssh/id_rsa.pub
+      flat: yes
+  tags:
+  - copyingpublickey
+
+- name: Copying SSH public key to the deploy nodes
+  hosts: infrastructure_nodes
+  become: yes
+  tasks:
+  - name: Making sure that the /root/.ssh directory exists
+    file:
+      mode: '0700'
+      state: directory
+      path: /root/.ssh
+  - name: Copying public key to the authorized_keys file
+    copy:
+      src: authorized_keys
+      mode: '0600'
+      dest: /root/.ssh/authorized_keys
+  tags:
+  - copyingpublickey

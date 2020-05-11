@@ -1,0 +1,23 @@
+---
+# tasks file for networking_controllers
+
+- name: Making sure that brctl is installed
+  apt:
+    name: bridge-utils
+    state: latest
+
+- name: Creating bridges
+  with_items: "{{ bridges }}"
+  command: brctl addbr "{{ item }}"
+
+- name: Creating networking configuration files
+  template:
+    src: ../templates/{{ nodetype }}-interfaces.j2
+    dest: /etc/network/interfaces
+  tags:
+  - networking_files_controllers
+
+- name: Restarting networking.service so the new bridges come up
+  systemd:
+    state: restarted
+    name: networking

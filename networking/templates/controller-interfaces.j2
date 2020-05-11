@@ -1,0 +1,24 @@
+# ifupdown has been replaced by netplan(5) on this system.  See
+# /etc/netplan for current configuration.
+# To re-enable ifupdown on this system, you can run:
+#    sudo apt install ifupdown
+auto lo
+iface lo inet loopback
+
+auto ens5
+iface ens5 inet dhcp
+
+auto br-mgmt
+auto br-storage
+
+iface br-mgmt inet static
+  bridge_ports ens6
+  bridge_stp off
+  address {{ ip_brmgmt }}
+  netmask 255.255.255.0
+
+iface br-storage inet static
+  bridge_ports ens7
+  bridge_stp off
+  address {{ ip_brstorage }}
+  netmask 255.255.255.0

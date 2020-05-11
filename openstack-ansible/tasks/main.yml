@@ -1,0 +1,52 @@
+---
+# tasks file for openstack-ansible
+
+- name: Cloning the OpenStack-Ansible repository on the deployment node
+  git:
+    repo: https://opendev.org/openstack/openstack-ansible
+    dest: /opt/openstack-ansible
+    version: master
+
+- name: Bootstrapping ansible
+  command: scripts/bootstrap-ansible.sh
+  args:
+    chdir: /opt/openstack-ansible
+
+- name: Copying etc/openstack_deploy into /etc
+  command: cp -r /opt/openstack-ansible/etc/openstack_deploy /etc
+
+- name: Copying openstack_user_variables.yaml into /etc/openstack_deploy
+  copy:
+    src: ../files/openstack_user_config.yml
+    dest: /etc/openstack_deploy
+  tags:
+  - copyinguserconfig
+
+- name: Copying openstack_user_variables.yaml into /etc/openstack_deploy/openstack_user_variables.yml
+  copy:
+    src: ../files/openstack_user_config.yml
+    dest: /etc/openstack_deploy/openstack_user_variables.yml
+  tags:
+  - copyinguserconfig
+
+- name: Generaring random passphrases for the various OpenStack services
+  command: python pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
+  args:
+    chdir: /opt/openstack-ansible/scripts
+
+# This part was added to use Open vSwitch (https://docs.openstack.org/openstack-ansible-os_neutron/latest/app-openvswitch.html)
+
+- name: Create a group var file for network hosts in /etc/openstack_deploy/group_vars/network_hosts
+  file:
+    path: /etc/openstack_deploy/group_vars
+    state: directory
+    mode: '0755'
+  tags:
+  - copyinguserconfig
+
+- name: Copying file network_hosts to /etc/openstack_deploy/group_vars
+  copy:
+    src: ../files/network_hosts
+    dest: /etc/openstack_deploy/group_vars
+  tags:
+  - copyinguserconfig
