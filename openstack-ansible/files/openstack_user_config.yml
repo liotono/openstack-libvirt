@@ -268,7 +268,7 @@ used_ips:
 #
 global_overrides:
   internal_lb_vip_address: 172.29.236.20
-  external_lb_vip_address: 192.168.100.20
+  external_lb_vip_address: 192.168.15.220
   lb_name: haproxy
   tunnel_bridge: "br-vxlan"
   management_bridge: "br-mgmt"
@@ -315,10 +315,10 @@ global_overrides:
       container_type: "veth"
       container_interface: "eth11"
       type: "vlan"
-      range: "101:200,301:400"
+      range: "100:200,300:400"
       net_name: "vlan"
   - network:
-      container_bridge: "br-ext"
+      container_bridge: "br-physnet1"
       container_type: "veth"
       type: "flat"
       net_name: "flat"

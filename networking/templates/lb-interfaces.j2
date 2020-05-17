@@ -27,21 +27,11 @@ iface ens7 inet manual
 auto bond0.236
 iface bond0.236 inet manual
 
-auto bond0.244
-iface bond0.244 inet manual
-
 # OpenStack bridges
 auto br-mgmt
-auto br-storage
 
 iface br-mgmt inet static
   bridge_ports bond0.236
   bridge_stp off
   address {{ ip_brmgmt }}
-  netmask 255.255.255.0
-
-iface br-storage inet static
-  bridge_ports bond0.244
-  bridge_stp off
-  address {{ ip_brstorage }}
   netmask 255.255.255.0

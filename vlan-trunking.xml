@@ -1,0 +1,21 @@
+<network>
+  <name>openstack-sw</name>
+  <forward mode='bridge'/>
+  <bridge name='openstack-sw'/>
+  <virtualport type='openvswitch'/>
+  <portgroup name='vlan-bond1'>
+    <vlan trunk='yes'>
+      <tag id='240'/>
+      <tag id='100'/>
+      <tag id='200'/>
+      <tag id='300'/>
+    </vlan>
+  </portgroup>
+  <portgroup name='vlan-bond0'>
+    <vlan trunk='yes'>
+      <tag id='236'/>
+      <tag id='244'/>
+    </vlan>
+  </portgroup>
+</network>
+

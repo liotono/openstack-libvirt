@@ -4,7 +4,7 @@
 # deployment00 ansible_host=deployment00
 
 # LB
-lb00 ansible_host=lb00 
+lb00 ansible_host=lb00 ip_brmgmt=172.29.236.20
 
 # Controller
 controller00 ansible_host=controller00 ip_brmgmt=172.29.236.30 ip_brvxlan=172.29.240.30 ip_brstorage=172.29.244.30

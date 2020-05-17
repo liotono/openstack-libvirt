@@ -70,8 +70,17 @@ Vagrant.configure("2") do |config|
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0"
-      box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
+      # mgmt network
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      # Public network 192.168.15.0/24
+      box.vm.network :public_network,
+        type: 'bridge',
+        dev: 'openstack-sw',
+        mode: 'bridge',
+        ovs: true,
+        ip: "192.168.15.2#{ip}",
+        netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
         domain.memory = lb[:memory]
         domain.cpus = lb[:cpus]
@@ -88,12 +97,9 @@ Vagrant.configure("2") do |config|
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      # box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      # Provider Network
-      # box.vm.network :public_network, :dev => "ovs-ext", :mode => "bridge", :type => "bridge", :ovs => true
-      box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
+      # mgmt and storage network
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
         domain.memory = controller[:memory]
         domain.cpus = controller[:cpus]
@@ -110,13 +116,11 @@ Vagrant.configure("2") do |config|
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      box.vm.network :private_network, ip: "172.29.248.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      # Provider Network
-      # box.vm.network :public_network, :dev => "ovs-ext", :mode => "bridge", :type => "bridge", :ovs => true
-      # box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
+      # mgmt, storage and vxlan networks
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond1", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond1", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
         domain.memory = compute[:memory]
         domain.cpus = compute[:cpus]
@@ -135,13 +139,18 @@ Vagrant.configure("2") do |config|
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
       box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      box.vm.network :private_network, ip: "172.29.236.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      box.vm.network :private_network, ip: "172.29.240.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      # box.vm.network :private_network, ip: "172.29.244.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      box.vm.network :private_network, ip: "172.29.248.#{ip}", :netmask => "255.255.255.0", auto_config: false
-      # Provider Network
-      box.vm.network :public_network, :dev => "ovs-ext", :mode => "bridge", :type => "bridge", :ovs => true, auto_config: false
-      # box.vm.network :private_network, libvirt__network_name: "openstack-public", ip: "192.168.100.#{ip}", netmask: "255.255.255.0"
+      # mgmt, storage, vxlan and vlan networks
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond1", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw', portgroup: "vlan-bond1", ovs: true, auto_config: false
+      # provider network
+      box.vm.network :public_network,
+        type: 'bridge',
+        dev: 'openstack-sw',
+        mode: 'bridge',
+        ovs: true,
+        auto_config: false
       box.vm.provider :libvirt do |domain|
         domain.memory = network[:memory]
         domain.cpus = network[:cpus]

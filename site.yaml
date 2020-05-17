@@ -8,6 +8,19 @@
   tags:
   - updatingnodes
 
+- name: Setting up networking in load balancer nodes
+  hosts: lb_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_lbs
+  vars:
+    bridges:
+    - br-mgmt
+    nodetype: lb
+
 - name: Setting up networking in controller nodes
   hosts: controller_nodes
   become: yes
