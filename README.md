@@ -18,8 +18,7 @@ OpenStack environment using Libvirt, Ansible and Vagrant
   
 # Currently the project supports the following:
 
-1. Creating a dynamic multinode enviroment (number of nodes can be specified in the Vagrantfile).
-1. Currently, only the following nodes can be created: lb, deployment, controller, compute and network.
+1. Creating a dynamic multinode enviroment (number of nodes can be specified in the Vagrantfile). Currently, only the following nodes can be created: lb, deployment, controller, compute and network.
 1. Network interface bonding in the nodes that made up the OpenStack environment.
 1. VLAN's support for the storage, container and tenant networks.
 1. Flat network support for provider networks.
