@@ -9,11 +9,11 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 1. Modify the file openstack-ansible/files/openstack_user_config.yml to define your OpenStack enviroment.
 1. Execute: ansible-playbook -i inventory site.yaml. This will set up the virtual machines and it'll get them ready for OpenStack.
 1. Log into the OpenStack deployment node and execute.
-  1. cd /opt/openstack-ansible/playbooks
-  1. openstack-ansible setup-hosts.yml
-  1. openstack-ansible haproxy-install.yml # If using Load Balancer nodes
-  1. openstack-ansible setup-infrastructure.yml
-  1. openstack-ansible setup-openstack.yml
+    1. cd /opt/openstack-ansible/playbooks
+    1. openstack-ansible setup-hosts.yml
+    1. openstack-ansible haproxy-install.yml # If using Load Balancer nodes
+    1. openstack-ansible setup-infrastructure.yml
+    1. openstack-ansible setup-openstack.yml
   
 # Currently the project supports the following:
 
