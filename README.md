@@ -5,11 +5,17 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 # Steps to create an OpenStack project
 
 1. In the host machine, create an Open vSwitch bridge called openstack-sw and also define a network in libvirt using the XML file vlan-trunking.xml
+<<<<<<< HEAD
 1. Define the number of nodes: deployment, load balancer, controller, compute, network, ceph, swift, cinder, etc. in the Vagrantfile
 2. Execute vagrant up
 1. Update the file inventory.txt (this is an Ansible inventory file).
 1. Modify the networking configuration files inside networking/templates based on the environment defined in openstack_user_config.yml
     1. The file interfaces.j2 can be used as a template for every node defined
+=======
+1. Define the number of nodes: deployment, load balancer, controller, compute, network, ceph, swift, cinder, etc. in Vagrantfile
+1. Update the file inventory.txt (this is an Ansible inventory file).
+1. Add the OpenStack configuration files in openstack-ansible/files/openstack_deploy. These files define your OpenStack deployment and will be copied to /etc/openstack_deploy in the deployment node.
+>>>>>>> 9e95e64d7ff482740b21f9dd1ade79252db39f95
 1. Execute: ansible-playbook -i inventory.txt site.yaml. This will set up the virtual machines and it'll get them ready for OpenStack.
 1. Modify the file openstack_user_config.yml in the deployment node.
     1. The used_ips.txt file can be used to update the variable used_ips in openstack_user_config.yml
