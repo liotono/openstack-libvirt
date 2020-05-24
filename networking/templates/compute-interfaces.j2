@@ -5,8 +5,8 @@
 auto lo
 iface lo inet loopback
 
-auto ens5
-iface ens5 inet dhcp
+auto eth0
+iface eth0 inet dhcp
 
 # bond0
 auto bond0
@@ -15,13 +15,13 @@ iface bond0 inet manual
     bond-miimon 100
     bond-slaves none
 
-auto ens6
-iface ens6 inet manual
+auto eth1
+iface eth1 inet manual
     bond-master bond0
-    bond-primary ens6
+    bond-primary eth1
 
-auto ens7
-iface ens7 inet manual
+auto eth2
+iface eth2 inet manual
     bond-master bond0
 
 auto bond0.236
@@ -37,13 +37,13 @@ iface bond1 inet manual
     bond-miimon 100
     bond-slaves none
 
-auto ens8
-iface ens8 inet manual
+auto eth3
+iface eth3 inet manual
     bond-master bond1
-    bond-primary ens8
+    bond-primary eth3
 
-auto ens9
-iface ens9 inet manual
+auto eth4
+iface eth4 inet manual
     bond-master bond1
 
 auto bond1.240

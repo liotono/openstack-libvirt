@@ -1,14 +1,13 @@
-
 # Nodes
 # Deployment
 # deployment00 ansible_host=deployment00
 
 # LB
-lb00 ansible_host=lb00 ip_brmgmt=172.29.236.20
+lb00 ansible_host=lb00 ip_brmgmt=172.29.236.20 ip_brvxlan=172.29.240.20 ip_brstorage=172.29.244.20
 
 # Controller
 controller00 ansible_host=controller00 ip_brmgmt=172.29.236.30 ip_brvxlan=172.29.240.30 ip_brstorage=172.29.244.30
-controller01 ansible_host=controller01 ip_brmgmt=172.29.236.31 ip_brvxlan=172.29.240.31 ip_brstorage=172.29.244.31
+# controller01 ansible_host=controller01 ip_brmgmt=172.29.236.31 ip_brvxlan=172.29.240.31 ip_brstorage=172.29.244.31
 
 # Compute
 compute00 ansible_host=compute00 ip_brmgmt=172.29.236.40 ip_brvxlan=172.29.240.40 ip_brstorage=172.29.244.40
@@ -16,9 +15,13 @@ compute00 ansible_host=compute00 ip_brmgmt=172.29.236.40 ip_brvxlan=172.29.240.4
 # compute02 ansible_host=compute02 ip_brmgmt=172.29.236.42 ip_brvxlan=172.29.240.42 ip_brstorage=172.29.244.42
 
 # Network
-network00 ansible_host=network00 ip_brmgmt=172.29.236.50 ip_brvxlan=172.29.240.50 ip_brstorage=172.29.244.50
+# network00 ansible_host=network00 ip_brmgmt=172.29.236.50 ip_brvxlan=172.29.240.50 ip_brstorage=172.29.244.50
 # network01 ansible_host=network01 ip_brmgmt=172.29.236.51 ip_brvxlan=172.29.240.51 ip_brstorage=172.29.244.51
 # network02 ansible_host=network02 ip_brmgmt=172.29.236.52 ip_brvxlan=172.29.240.52 ip_brstorage=172.29.244.52
+
+# Cinder
+cinder00 ansible_host=cinder00 ip_brmgmt=172.29.236.70 ip_brvxlan=172.29.240.70 ip_brstorage=172.29.244.70
+cinder01 ansible_host=cinder01 ip_brmgmt=172.29.236.71 ip_brvxlan=172.29.240.71 ip_brstorage=172.29.244.71
 
 [deployment_nodes]
 controller00
@@ -27,24 +30,31 @@ controller00
 lb00
 
 [controller_nodes]
-controller0[0:1]
+controller00
+# controller0[0:1]
 
 [compute_nodes]
 compute00
 
 [network_nodes]
-network00
+# network00
 
-[openstack_nodes:children]
-controller_nodes
-compute_nodes
-network_nodes
+[cinder_nodes]
+cinder00
+cinder01
+
+# [openstack_nodes:children]
+# controller_nodes
+# compute_nodes
+# network_nodes
+# cinder_nodes
 
 [infrastructure_nodes:children]
 controller_nodes
 compute_nodes
 network_nodes
 lb_nodes
+cinder_nodes
 
 [all:vars]
 ansible_user=vagrant

@@ -33,6 +33,9 @@
     bridges:
     - br-mgmt
     - br-storage
+    - br-provider
+    - br-vxlan
+    - br-vlan
     nodetype: controller
 
 - name: Setting up networking in compute nodes
@@ -64,8 +67,52 @@
     - br-mgmt
     - br-vxlan
     - br-vlan
-    - br-ext
+    - br-provider
     nodetype: network
+
+- name: Setting up networking in cinder nodes
+  hosts: cinder_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_cinder
+  vars:
+    bridges:
+    - br-mgmt
+    - br-storage
+    nodetype: cinder
+
+# Used IP ddresses
+- name: Gathering used IP addresses
+  hosts: all
+  tasks:
+  - local_action:
+      module: stat
+      path: "{{ playbook_dir }}/used_ips.txt"
+    register: used_ips_file
+  - shell: "ip -o addr | grep -v inet6 | grep -vE 'eth0|127.0.0.1' | awk '{ print $4 }' | awk -F/ '{ printf \"%s,\", $1 }' | sed 's/,$//'"
+    register: interfaces
+    when: not used_ips_file.stat.exists
+  - local_action:
+      module: lineinfile
+      line: "- \"{{ interfaces.stdout }}\""
+      path: "{{ playbook_dir }}/used_ips.txt"
+      create: yes
+    when: not used_ips_file.stat.exists
+  tags:
+  - used_ips
+
+- name: Creating volume group cinder-volumes in cinder nodes
+  hosts: cinder_nodes
+  become: yes
+  tasks:
+  - lvg:
+      vg: cinder-volumes
+      pvs: /dev/vdb
+  tags:
+  - cinder-volgroup
 
 - name: Cloning, preparing and bootstrapping OpenStack-Ansible
   hosts: deployment_nodes
