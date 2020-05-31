@@ -293,7 +293,7 @@ global_overrides:
       range: "100:200,300:400"
       net_name: "vlan"
   - network:
-      container_bridge: "br-provider"
+      container_bridge: "br-physnet1"
       container_type: "veth"
       type: "flat"
       net_name: "flat"
@@ -321,8 +321,8 @@ global_overrides:
 shared-infra_hosts:
   controller00:
     ip: 172.29.236.30
-  # controller01:
-  #  ip: 172.29.236.31
+  controller01:
+    ip: 172.29.236.31
 #   infra2:
 #     ip: 172.29.236.102
 #   infra3:
@@ -406,6 +406,8 @@ shared-infra_hosts:
 os-infra_hosts:
   controller00:
     ip: 172.29.236.30
+  controller01:
+    ip: 172.29.236.31
 #  controller01:
 #    ip: 172.29.236.31
 #   infra1:
@@ -436,6 +438,8 @@ os-infra_hosts:
 identity_hosts:
   controller00:
     ip: 172.29.236.30
+  controller01:
+    ip: 172.29.236.31
 #  controller01:
 #    ip: 172.29.236.31
 #   infra2:
@@ -464,6 +468,8 @@ identity_hosts:
 network_hosts:
   controller00:
     ip: 172.29.236.30
+  controller01:
+    ip: 172.29.236.31
 #   infra2:
 #     ip: 172.29.236.102
 #   infra3:
@@ -490,8 +496,8 @@ network_hosts:
 compute_hosts:
   compute00:
     ip: 172.29.236.40
-#  compute01:
-#    ip: 172.29.236.41
+  compute01:
+    ip: 172.29.236.41
 #
 # --------
 #
@@ -536,6 +542,8 @@ compute_hosts:
 storage-infra_hosts:
   controller00:
     ip: 172.29.236.30
+  controller01:
+    ip: 172.29.236.31
 #    infra2:
 #     ip: 172.29.236.102
 #   infra3:
@@ -663,16 +671,6 @@ storage_hosts:
           volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
           volume_backend_name: LVM_iSCSI
           iscsi_ip_address: 172.29.244.70
-  cinder01:
-    ip: 172.29.236.71
-    container_vars:
-      cinder_backends:
-        limit_container_types: cinder_volume
-        lvm:
-          volume_group: cinder-volumes
-          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
-          volume_backend_name: LVM_iSCSI
-          iscsi_ip_address: 172.29.244.71
 #
 # Example:
 #

@@ -88,19 +88,11 @@
 - name: Gathering used IP addresses
   hosts: all
   tasks:
-  - local_action:
-      module: stat
-      path: "{{ playbook_dir }}/used_ips.txt"
-    register: used_ips_file
   - shell: "ip -o addr | grep -v inet6 | grep -vE 'eth0|127.0.0.1' | awk '{ print $4 }' | awk -F/ '{ printf \"%s,\", $1 }' | sed 's/,$//'"
     register: interfaces
-    when: not used_ips_file.stat.exists
-  - local_action:
-      module: lineinfile
-      line: "- \"{{ interfaces.stdout }}\""
-      path: "{{ playbook_dir }}/used_ips.txt"
-      create: yes
-    when: not used_ips_file.stat.exists
+  - debug:
+      msg: "{{ interfaces.stdout }}"
+    when: interfaces.rc == 0
   tags:
   - used_ips
 
@@ -121,6 +113,8 @@
   - openstack-ansible
   tags:
   - openstackansiblesetup
+  vars:
+    openstack_version: stable/stein
 
 - name: Fetching the public key from the deployment node
   hosts: deployment_nodes

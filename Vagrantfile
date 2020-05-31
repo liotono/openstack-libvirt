@@ -34,13 +34,13 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 # Node types
 # DON'T FORGET TO UPDATE THE ANSIBLE INVENTORY FILE (inventory.txt)
 deployment = { :count => 0, :start_ip => 10, :memory => 5120, cpus: 4 }
-lb         = { :count => 1, :start_ip => 20, :memory => 2048, cpus: 2 }
-controller = { :count => 1, :start_ip => 30, :memory => 3072, cpus: 2 }
-compute    = { :count => 1, :start_ip => 40, :memory => 4096, cpus: 2 }
+lb         = { :count => 1, :start_ip => 20, :memory => 1024, cpus: 1 }
+controller = { :count => 2, :start_ip => 30, :memory => 4096, cpus: 4 }
+compute    = { :count => 2, :start_ip => 40, :memory => 4096, cpus: 2 }
 network    = { :count => 0, :start_ip => 50, :memory => 2048, cpus: 2 }
-ceph       = { :count => 3, :start_ip => 60, :memory => 1024, cpus: 4 }
-cinder     = { :count => 2, :start_ip => 70, :memory => 2048, cpus: 2 }
-swift      = { :count => 1, :start_ip => 80, :memory => 2048, cpus: 2 }
+ceph       = { :count => 0, :start_ip => 60, :memory => 1024, cpus: 4 }
+cinder     = { :count => 1, :start_ip => 70, :memory => 2048, cpus: 2 }
+swift      = { :count => 0, :start_ip => 80, :memory => 2048, cpus: 2 }
 
 Vagrant.configure("2") do |config|
 
@@ -51,7 +51,7 @@ Vagrant.configure("2") do |config|
 
   # Define the pool from which the 
   config.vm.provider :libvirt do |libvirt|
-    libvirt.storage_pool_name = "virsh-hdd-pool"
+    libvirt.storage_pool_name = "virsh-ssd-pool"
   end
 
   # Creating the deployment node

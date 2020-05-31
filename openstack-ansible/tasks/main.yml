@@ -5,7 +5,7 @@
   git:
     repo: https://opendev.org/openstack/openstack-ansible
     dest: /opt/openstack-ansible
-    version: master
+    version: "{{ openstack_version }}"
 
 - name: Bootstrapping ansible
   command: scripts/bootstrap-ansible.sh
@@ -23,8 +23,11 @@
   command: cp -rn /opt/openstack-ansible/etc/openstack_deploy /etc
   tags:
   - copyinguserconfig
+  register: copy_result
 
 - name: Generaring random passphrases for the various OpenStack services
   command: python pw-token-gen.py --file /etc/openstack_deploy/user_secrets.yml
   args:
     chdir: /opt/openstack-ansible/scripts
+  tags:
+  - copyinguserconfig
