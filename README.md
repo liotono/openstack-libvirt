@@ -11,6 +11,7 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 1. Modify the networking configuration files inside networking/templates based on your environment.
     1. The file interfaces.j2 can be used as a template for every node defined.
 1. Add the OpenStack configuration files in openstack-ansible/files/openstack_deploy. These files define your OpenStack deployment and will be copied to /etc/openstack_deploy in the deployment node.
+1. Modify the variable openstack_version (version to be deployed) in the task 'Cloning, preparing and bootstrapping OpenStack-Ansible'. This in site.yaml
 1. Execute: ansible-playbook -i inventory.txt site.yaml
     1. This will set up the virtual machines and it'll get them ready for OpenStack.
 1. Log into the OpenStack deployment node and execute.
