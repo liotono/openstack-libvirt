@@ -30,31 +30,9 @@ iface bond0.236 inet manual
 auto bond0.244
 iface bond0.244 inet manual
 
-# bond1
-auto bond1
-iface bond1 inet manual
-    bond-mode active-backup
-    bond-miimon 100
-    bond-slaves none
-
-auto eth3
-iface eth3 inet manual
-    bond-master bond1
-    bond-primary eth3
-
-auto eth4
-iface eth4 inet manual
-    bond-master bond1
-
-auto bond1.240
-iface bond1.240 inet manual
-
 # OpenStack bridges
 auto br-mgmt
-auto br-vxlan
 auto br-storage
-auto br-vlan
-auto br-physnet1
 
 iface br-mgmt inet static
   bridge_ports bond0.236
@@ -62,25 +40,8 @@ iface br-mgmt inet static
   address {{ ip_brmgmt }}
   netmask 255.255.255.0
 
-iface br-vxlan inet static
-  bridge_ports bond1.240
-  bridge_stp off
-  address {{ ip_brvxlan }}
-  netmask 255.255.255.0
-
 iface br-storage inet static
   bridge_ports bond0.244
   bridge_stp off
   address {{ ip_brstorage }}
   netmask 255.255.255.0
-
-iface br-vlan inet manual
-  bridge_ports bond1
-  bridge_stp off
-  bridge_maxwait 0
-
-# Flat provider
-iface br-physnet1 inet manual
-  bridge_ports bond0
-  bridge_stp off
-  bridge_maxwait 0

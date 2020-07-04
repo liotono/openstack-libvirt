@@ -2,4 +2,4 @@
 container_skel:
   cinder_volumes_container:
     properties:
-      is_metal: true
+      is_metal: false

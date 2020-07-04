@@ -54,7 +54,6 @@ auto br-mgmt
 auto br-vxlan
 auto br-storage
 auto br-vlan
-auto br-physnet1
 
 iface br-mgmt inet static
   bridge_ports bond0.236
@@ -76,11 +75,5 @@ iface br-storage inet static
 
 iface br-vlan inet manual
   bridge_ports bond1
-  bridge_stp off
-  bridge_maxwait 0
-
-# Flat provider
-iface br-physnet1 inet manual
-  bridge_ports eth5
   bridge_stp off
   bridge_maxwait 0

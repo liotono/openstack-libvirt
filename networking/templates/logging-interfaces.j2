@@ -27,24 +27,6 @@ iface eth2 inet manual
 auto bond0.236
 iface bond0.236 inet manual
 
-# bond1
-auto bond1
-iface bond1 inet static
-    address {{ ip_public }}
-    netmask 255.255.255.0
-    bond-mode active-backup
-    bond-miimon 100
-    bond-slaves none
-
-auto eth3
-iface eth3 inet manual
-    bond-master bond1
-    bond-primary eth3
-
-auto eth4
-iface eth4 inet manual
-    bond-master bond1
-
 # OpenStack bridges
 auto br-mgmt
 

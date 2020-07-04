@@ -3,7 +3,7 @@
 # deployment00 ansible_host=deployment00
 
 # LB
-lb00 ansible_host=lb00 ip_brmgmt=172.29.236.20 ip_brvxlan=172.29.240.20 ip_brstorage=172.29.244.20
+lb00 ansible_host=lb00 ip_brmgmt=172.29.236.20 ip_brvxlan=172.29.240.20 ip_brstorage=172.29.244.20 ip_public=192.168.15.120
 
 # Controller
 controller00 ansible_host=controller00 ip_brmgmt=172.29.236.30 ip_brvxlan=172.29.240.30 ip_brstorage=172.29.244.30
@@ -12,7 +12,7 @@ controller01 ansible_host=controller01 ip_brmgmt=172.29.236.31 ip_brvxlan=172.29
 
 # Compute
 compute00 ansible_host=compute00 ip_brmgmt=172.29.236.40 ip_brvxlan=172.29.240.40 ip_brstorage=172.29.244.40
-compute01 ansible_host=compute01 ip_brmgmt=172.29.236.41 ip_brvxlan=172.29.240.41 ip_brstorage=172.29.244.41
+# compute01 ansible_host=compute01 ip_brmgmt=172.29.236.41 ip_brvxlan=172.29.240.41 ip_brstorage=172.29.244.41
 # compute02 ansible_host=compute02 ip_brmgmt=172.29.236.42 ip_brvxlan=172.29.240.42 ip_brstorage=172.29.244.42
 
 # Network
@@ -21,8 +21,17 @@ compute01 ansible_host=compute01 ip_brmgmt=172.29.236.41 ip_brvxlan=172.29.240.4
 # network02 ansible_host=network02 ip_brmgmt=172.29.236.52 ip_brvxlan=172.29.240.52 ip_brstorage=172.29.244.52
 
 # Cinder
-cinder00 ansible_host=cinder00 ip_brmgmt=172.29.236.70 ip_brvxlan=172.29.240.70 ip_brstorage=172.29.244.70
+# cinder00 ansible_host=cinder00 ip_brmgmt=172.29.236.70 ip_brvxlan=172.29.240.70 ip_brstorage=172.29.244.70
 # cinder01 ansible_host=cinder01 ip_brmgmt=172.29.236.71 ip_brvxlan=172.29.240.71 ip_brstorage=172.29.244.71
+
+# Ceph
+ceph00 ansible_host=ceph00 ip_brmgmt=172.29.236.60 ip_brvxlan=172.29.240.60 ip_brstorage=172.29.244.60
+ceph01 ansible_host=ceph01 ip_brmgmt=172.29.236.61 ip_brvxlan=172.29.240.61 ip_brstorage=172.29.244.61
+ceph02 ansible_host=ceph02 ip_brmgmt=172.29.236.62 ip_brvxlan=172.29.240.62 ip_brstorage=172.29.244.62
+
+# Logging
+# logging00 ansible_host=logging00 ip_brmgmt=172.29.236.90 ip_brvxlan=172.29.240.90 ip_brstorage=172.29.244.90
+
 
 [deployment_nodes]
 controller00
@@ -34,19 +43,21 @@ lb00
 controller0[0:1]
 
 [compute_nodes]
-compute0[0:1]
+compute00
 
 [network_nodes]
 # network00
 
 [cinder_nodes]
-cinder00
+# cinder00
 
-# [openstack_nodes:children]
-# controller_nodes
-# compute_nodes
-# network_nodes
-# cinder_nodes
+[ceph_nodes]
+ceph00
+ceph01
+ceph02
+
+[logging_nodes]
+# logging00
 
 [infrastructure_nodes:children]
 controller_nodes
@@ -54,6 +65,8 @@ compute_nodes
 network_nodes
 lb_nodes
 cinder_nodes
+ceph_nodes
+logging_nodes
 
 [all:vars]
 ansible_user=vagrant

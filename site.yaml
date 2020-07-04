@@ -84,6 +84,33 @@
     - br-storage
     nodetype: cinder
 
+- name: Setting up networking in ceph nodes
+  hosts: ceph_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_ceph
+  vars:
+    bridges:
+    - br-mgmt
+    - br-storage
+    nodetype: ceph
+
+- name: Setting up networking in logging nodes
+  hosts: logging_nodes
+  become: yes
+  roles:
+  - networking
+  tags:
+  - networking
+  - networking_logging
+  vars:
+    bridges:
+    - br-mgmt
+    nodetype: logging
+
 # Used IP ddresses
 - name: Gathering used IP addresses
   hosts: all
@@ -114,7 +141,7 @@
   tags:
   - openstackansiblesetup
   vars:
-    openstack_version: stable/stein
+    openstack_version: stable/train
 
 - name: Fetching the public key from the deployment node
   hosts: deployment_nodes

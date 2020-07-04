@@ -1,0 +1,24 @@
+<network>
+  <name>openstack-sw0</name>
+  <forward mode='bridge'/>
+  <bridge name='openstack-sw0'/>
+  <virtualport type='openvswitch'/>
+  <portgroup name='vlan-bond1'>
+    <vlan trunk='yes'>
+      <tag id='240'/>
+      <tag id='100' nativeMode='untagged'/>
+      <tag id='101'/>
+      <tag id='102'/>
+      <tag id='103'/>
+      <tag id='104'/>
+      <tag id='105'/>
+    </vlan>
+  </portgroup>
+  <portgroup name='vlan-bond0'>
+    <vlan trunk='yes'>
+      <tag id='236'/>
+      <tag id='244'/>
+    </vlan>
+  </portgroup>
+</network>
+
