@@ -5,7 +5,8 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 
 1. In the host machine, create two Open vSwitch bridges name them openstack-sw0 and openstack-sw1 and also define two networks in libvirt using the XML files openstack-sw0.xml and openstack-sw1.xml. These two switches are created to simulate some redudancy because hosts are connected to either of them and then a bond is created in the OpenStack nodes. Creating the bridges and the networks can be acomplished through the following commands:
 
-    ```# ovs-vsctl add-br openstack-sw0
+    ```
+    # ovs-vsctl add-br openstack-sw0
     # ovs-vsctl add-br openstack-sw1
 
     virsh # net-define openstack-sw0.xml
@@ -14,7 +15,8 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 
     virsh # net-define openstack-sw1.xml
     virsh # net-autostart openstack-sw1
-    virsh # net-start openstack-sw1```
+    virsh # net-start openstack-sw1
+    ```
 
 1. Connect the two bridges using patch ports:
 
