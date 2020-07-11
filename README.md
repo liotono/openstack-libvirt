@@ -20,23 +20,29 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 
 1. Connect the two bridges using patch ports:
 
+    ```
     ovs-vsctl add-port openstack-sw0 trunk-sw0
     ovs-vsctl add-port openstack-sw1 trunk-sw1
     ovs-vsctl set interface trunk-sw0 type=patch
     ovs-vsctl set interface trunk-sw1 type=patch
     ovs-vsctl set interface trunk-sw0 options=peer=trunk-sw1
     ovs-vsctl set interface trunk-sw1 options=peer=trunk-sw0
+    ```
 
 1. If possible, add a one of your server's physical network interface to one of the bridges to provide external access to VM's:
 
+    ```
     ovs-vsctl add-port openstack-sw0 enp7s0f1
+    ```
 
 1. Set the native VLAN and also the VLANS that are going to be trunked between bridges:
 
+    ```
     ovs-vsctl set port trunk-sw0 trunks=101,102,103,104,105,236,240,244
     ovs-vsctl set port trunk-sw1 trunks=101,102,103,104,105,236,240,244
     ovs-vsctl set port trunk-sw0 vlan_mode=native-untagged
-    ovs-vsctl set port trunk-sw1 vlan_mode=native-untagged```
+    ovs-vsctl set port trunk-sw1 vlan_mode=native-untagged
+    ```
 
 1. Define the number of nodes: deployment, load balancer, controller, compute, network, ceph, swift, cinder, etc. in Vagrantfile
 1. Execute vagrant up
