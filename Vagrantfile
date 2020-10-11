@@ -34,14 +34,15 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 # Node types
 # DON'T FORGET TO UPDATE THE ANSIBLE INVENTORY FILE (inventory.txt)
 deployment = { :count => 0, :start_ip => 10, :memory => 5120, cpus: 4 }
-lb         = { :count => 1, :start_ip => 20, :memory => 1024, cpus: 1 }
-controller = { :count => 2, :start_ip => 30, :memory => 4096, cpus: 2 }
-compute    = { :count => 1, :start_ip => 40, :memory => 4096, cpus: 4 }
-network    = { :count => 0, :start_ip => 50, :memory => 2048, cpus: 2 }
-ceph       = { :count => 3, :start_ip => 60, :memory => 2048, cpus: 2 }
-cinder     = { :count => 0, :start_ip => 70, :memory => 2048, cpus: 2 }
-swift      = { :count => 0, :start_ip => 80, :memory => 2048, cpus: 2 }
-logging    = { :count => 0, :start_ip => 90, :memory => 1024, cpus: 1 }
+lb         = { :count => 1, :start_ip => 20, :memory => 2048, cpus: 1 }
+controller = { :count => 3, :start_ip => 30, :memory => 4096, cpus: 2 }
+compute    = { :count => 3, :start_ip => 40, :memory => 4096, cpus: 4 }
+network    = { :count => 1, :start_ip => 50, :memory => 2048, cpus: 1 }
+ceph       = { :count => 4, :start_ip => 60, :memory => 2048, cpus: 1 }
+cinder     = { :count => 1, :start_ip => 70, :memory => 2048, cpus: 1 }
+swift      = { :count => 0, :start_ip => 80, :memory => 2048, cpus: 1 }
+logging    = { :count => 1, :start_ip => 90, :memory => 1024, cpus: 1 }
+nfs        = { :count => 0, :start_ip =>100, :memory => 2048, cpus: 1 }
 
 Vagrant.configure("2") do |config|
 
@@ -52,7 +53,7 @@ Vagrant.configure("2") do |config|
 
   # Define the pool from which the 
   config.vm.provider :libvirt do |libvirt|
-    libvirt.storage_pool_name = "virsh-hdd-pool"
+    libvirt.storage_pool_name = "virsh-ssd-pool"
   end
 
   # Creating the deployment node
@@ -216,6 +217,48 @@ Vagrant.configure("2") do |config|
         domain.cpus = ceph[:cpus]
         domain.storage :file, :size => '60G'
         domain.storage :file, :size => '60G'
+        domain.storage :file, :size => '60G'
+      end
+    end
+  end
+
+  # Creating the swift nodes
+  swift[:count].times do |i|
+    hostname = "swift%02d" % [i]
+    config.vm.define "#{hostname}" do |box|
+      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.hostname = "#{hostname}"
+      box.vm.synced_folder ".", "/vagrant", disabled: true
+      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
+      # mgmt and storage network
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.provider :libvirt do |domain|
+        domain.memory = swift[:memory]
+        domain.cpus = swift[:cpus]
+        domain.storage :file, :size => '60G'
+        domain.storage :file, :size => '60G'
+        domain.storage :file, :size => '60G'
+        domain.storage :file, :size => '60G'
+        domain.storage :file, :size => '60G'
+      end
+    end
+  end
+
+# Creating the NFS storage nodes
+  nfs[:count].times do |i|
+    hostname = "nfs%02d" % [i]
+    config.vm.define "#{hostname}" do |box|
+      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.hostname = "#{hostname}"
+      box.vm.synced_folder ".", "/vagrant", disabled: true
+      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
+      # mgmt and storage network
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
+      box.vm.provider :libvirt do |domain|
+        domain.memory = nfs[:memory]
+        domain.cpus = nfs[:cpus]
         domain.storage :file, :size => '60G'
       end
     end

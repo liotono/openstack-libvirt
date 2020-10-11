@@ -1,0 +1,219 @@
+---
+cidr_networks:
+  container: 172.29.236.0/24
+  tunnel: 172.29.240.0/24
+  storage: 172.29.244.0/24
+
+used_ips:
+- "172.29.236.100"
+- "172.29.244.100"
+- "172.29.236.80"
+- "172.29.244.80"
+- "172.29.236.81"
+- "172.29.244.81"
+- "172.29.236.82"
+- "172.29.244.82"
+- "172.29.236.60"
+- "172.29.244.60"
+- "172.29.236.61"
+- "172.29.244.61"
+- "172.29.236.62"
+- "172.29.244.62"
+- "172.29.236.90"
+- "172.29.236.50"
+- "172.29.244.50"
+- "172.29.240.50"
+- "172.29.236.70"
+- "172.29.244.70"
+- "172.29.236.71"
+- "172.29.244.71"
+- "172.29.236.40"
+- "172.29.244.40"
+- "172.29.240.40"
+- "172.29.236.41"
+- "172.29.244.41"
+- "172.29.240.41"
+- "172.29.236.42"
+- "172.29.244.42"
+- "172.29.240.42"
+- "172.29.236.30"
+- "172.29.244.30"
+- "172.29.240.30"
+- "172.29.236.31"
+- "172.29.244.31"
+- "172.29.240.31"
+- "172.29.236.32"
+- "172.29.244.32"
+- "172.29.240.32"
+- "172.29.236.20"
+- "192.168.15.120"
+
+global_overrides:
+  internal_lb_vip_address: 172.29.236.20
+  external_lb_vip_address: 192.168.15.120
+  lb_name: haproxy
+  tunnel_bridge: "br-vxlan"
+  management_bridge: "br-mgmt"
+  provider_networks:
+  - network:
+      group_binds:
+        - all_containers
+        - hosts
+      type: "raw"
+      container_bridge: "br-mgmt"
+      container_interface: "eth1"
+      container_type: "veth"
+      ip_from_q: "container"
+      is_container_address: true
+  - network:
+      group_binds:
+        - glance_api
+        - cinder_api
+        - cinder_volume
+        - nova_compute
+      type: "raw"
+      container_bridge: "br-storage"
+      container_type: "veth"
+      container_interface: "eth2"
+      container_mtu: "9000"
+      ip_from_q: "storage"
+  - network:
+      group_binds:
+        - neutron_linuxbridge_agent
+      container_bridge: "br-vxlan"
+      container_type: "veth"
+      container_interface: "eth10"
+      container_mtu: "9000"
+      ip_from_q: "tunnel"
+      type: "vxlan"
+      range: "1:1000"
+      net_name: "vxlan"
+  - network:
+      group_binds:
+        - neutron_linuxbridge_agent
+      container_bridge: "br-vlan"
+      container_type: "veth"
+      container_interface: "eth11"
+      type: "vlan"
+      range: "101:105"
+      net_name: "vlan"
+  - network:
+      container_bridge: "br-vlan"
+      container_type: "veth"
+      host_bind_override: "bond1"
+      type: "flat"
+      net_name: "flat"
+      group_binds:
+        - neutron_linuxbridge_agent
+
+_infrastructure_hosts: &infrastructure_hosts
+  controller00:
+    ip: 172.29.236.30
+  controller01:
+    ip: 172.29.236.31
+  controller02:
+    ip: 172.29.236.32
+
+shared-infra_hosts: *infrastructure_hosts
+
+os-infra_hosts: *infrastructure_hosts
+
+identity_hosts: *infrastructure_hosts
+
+placement-infra_hosts: *infrastructure_hosts
+
+image_hosts: *infrastructure_hosts
+
+compute_hosts:
+  compute00:
+    ip: 172.29.236.40
+  compute01:
+    ip: 172.29.236.41
+  compute02:
+    ip: 172.29.236.42
+
+compute-infra_hosts: *infrastructure_hosts
+
+storage-infra_hosts: *infrastructure_hosts
+
+orchestration_hosts: *infrastructure_hosts
+
+storage_hosts:
+  controller00:
+    ip: 172.29.236.30
+    container_vars:
+      cinder_backends:
+        limit_container_types: cinder_volume
+        lvm:
+          volume_group: cinder-volumes
+          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+          volume_backend_name: LVM_iSCSI
+          iscsi_ip_address: "172.29.244.70"
+        rbd:
+          volume_driver: cinder.volume.drivers.rbd.RBDDriver
+          rbd_pool: volumes
+          rbd_ceph_conf: /etc/ceph/ceph.conf
+          rbd_store_chunk_size: 8
+          volume_backend_name: rbddriver
+          rbd_user: "{{ cinder_ceph_client }}"
+          rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
+          report_discard_supported: true
+  controller01:
+    ip: 172.29.236.31
+    container_vars:
+      cinder_backends:
+        limit_container_types: cinder_volume
+        lvm:
+          volume_group: cinder-volumes
+          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+          volume_backend_name: LVM_iSCSI
+          iscsi_ip_address: "172.29.244.70"
+        rbd:
+          volume_driver: cinder.volume.drivers.rbd.RBDDriver
+          rbd_pool: volumes
+          rbd_ceph_conf: /etc/ceph/ceph.conf
+          rbd_store_chunk_size: 8
+          volume_backend_name: rbddriver
+          rbd_user: "{{ cinder_ceph_client }}"
+          rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
+          report_discard_supported: true
+  controller02:
+    ip: 172.29.236.32
+    container_vars:
+      cinder_backends:
+        limit_container_types: cinder_volume
+        lvm:
+          volume_group: cinder-volumes
+          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+          volume_backend_name: LVM_iSCSI
+          iscsi_ip_address: "172.29.244.70"
+        rbd:
+          volume_driver: cinder.volume.drivers.rbd.RBDDriver
+          rbd_pool: volumes
+          rbd_ceph_conf: /etc/ceph/ceph.conf
+          rbd_store_chunk_size: 8
+          volume_backend_name: rbddriver
+          rbd_user: "{{ cinder_ceph_client }}"
+          rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
+          report_discard_supported: true
+
+# Ceph
+ceph-mon_hosts: *infrastructure_hosts
+ceph-mds_hosts: *infrastructure_hosts
+ceph-nfs_hosts: *infrastructure_hosts
+
+ceph-osd_hosts:
+  ceph00:
+    ip: 172.29.236.60
+  ceph01:
+    ip: 172.29.236.61
+  ceph02:
+    ip: 172.29.236.62
+
+haproxy_hosts:
+  lb00:
+    ip: 172.29.236.20
+
+network_hosts:
+  network00:
+    ip: 172.29.236.50

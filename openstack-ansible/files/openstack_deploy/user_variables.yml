@@ -1,15 +1,27 @@
 ---
+cinder_iscsi_helper: tgtadm
+cinder_iscsi_iotype: fileio
+cinder_iscsi_num_targets: 100
+cinder_iscsi_port: 3260
+
 ## Ceph cluster fsid (must be generated before first run)
 ## Generate a uuid using: python -c 'import uuid; print(str(uuid.uuid4()))'
 generate_fsid: false
 fsid: 32d556e2-3a78-4a90-8e89-5ccd7bd6bef0
 
+# Not sure why this has to be defined again if it has already been defined
+# in openstack_user_config.yml
+cidr_networks:
+  container: 172.29.236.0/24
+  tunnel: 172.29.240.0/24
+  storage: 172.29.244.0/24
+
 ## ceph-ansible settings
 ## See https://github.com/ceph/ceph-ansible/tree/master/group_vars for
 ## additional configuration options available.
-monitor_address_block: "{{ cidr_networks.container }}"
-public_network: "{{ cidr_networks.container }}"
-cluster_network: "{{ cidr_networks.storage }}"
+monitor_address_block: "172.29.236.0/24"
+public_network: "172.29.236.0/24"
+cluster_network: "172.29.244.0/24"
 journal_size: 10240 # size in MB
 # ceph-ansible automatically creates pools & keys for OpenStack services
 openstack_config: true
@@ -18,17 +30,6 @@ glance_ceph_client: glance
 glance_default_store: rbd
 glance_rbd_store_pool: images
 nova_libvirt_images_rbd_pool: vms
-
-cinder_backends:
-  RBD:
-    volume_driver: cinder.volume.drivers.rbd.RBDDriver
-    rbd_pool: volumes
-    rbd_ceph_conf: /etc/ceph/ceph.conf
-    rbd_store_chunk_size: 8
-    volume_backend_name: rbddriver
-    rbd_user: "{{ cinder_ceph_client }}"
-    rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
-    report_discard_supported: true
 
 ceph_repository: community
 ceph_mirror: http://download.ceph.com
@@ -41,3 +42,22 @@ devices:
   - /dev/vdb
   - /dev/vdc
   - /dev/vdd
+
+# For swift
+# global_overrides:
+#   swift:
+#     part_power: 7
+#     storage_network: br-storage
+#     replication_network: br-storage
+#     drives:
+#       - name: vdb
+#       - name: vdc
+#       - name: vdd
+#       - name: vde
+#       - name: vdf
+#     mount_point: /srv
+#     storage_policies:
+#       - policy:
+#           name: default
+#           index: 0
+#           default: True

@@ -17,11 +17,11 @@
   tags:
   - setupswap
 
-- name: Filling swap file with zero's
-  shell: "dd if=/dev/zero of=/swapfile bs=1M count={{ ansible_memtotal_mb *2 }}"
-  when: output.stat.exists == False
-  tags:
-  - setupswap
+# - name: Filling swap file with zero's
+#   shell: "dd if=/dev/zero of=/swapfile bs=1M count={{ ansible_memtotal_mb *2 }}"
+#   when: output.stat.exists == False
+#   tags:
+#   - setupswap
 
 - name: Setting up the swap file and activating it
   shell: "chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile"
