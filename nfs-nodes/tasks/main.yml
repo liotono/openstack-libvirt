@@ -1,0 +1,92 @@
+---
+# tasks file for nfs-nodes
+
+# Set up networking using the role networking
+
+- name: Setting up networking in NFS nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: nfs
+  tags:
+  - networking_openstack
+  - networking_nfs_nodes
+
+# Setting up the NFS server which will export its share to OpenStack
+
+- name: Creating a primary partition on the disk which will be exported as an NFS share
+  parted:
+    device: /dev/vdb
+    number: 1
+    label: gpt
+    name: 'nfs-partiton'
+    state: present
+
+- name: Formatting the recently created disk partition
+  filesystem:
+    fstype: ext4
+    dev: /dev/vdb1
+
+- name: Creating the group nfs-group
+  group:
+    name: nfs-group
+
+- name: Creating the user nfs-user and adding it to the nfs-group
+  user:
+    name: nfs-user
+    group: nfs-group
+
+- name: Creating the directory in which the disk will be mounted
+  file:
+    path: "/mnt/{{ ansible_host }}-vol1"
+    state: directory
+
+- name: Mounting the disk and make this persistent across reboots
+  mount:
+    fstype: ext4
+    opts: defaults
+    path: "/mnt/{{ ansible_host }}-vol1"
+    src: /dev/vdb1 
+    state: mounted
+
+- name: Changing recursively the owner and owner group of the directory to be exported
+  file:
+    path: "/mnt/{{ ansible_host }}-vol1"
+    owner: nfs-user
+    group: nfs-group
+    state: directory
+    recurse: yes
+
+- name: Determining the UID assigned to the nfs-user user
+  shell:
+    cmd: "awk -F: '/nfs-user/ { print $3 }' /etc/passwd"
+  register: nfs_user
+
+- name: Determining the GID assigned to the nfs-group group
+  shell:
+    cmd: "awk -F: '/nfs-group/ { print $3 }' /etc/group"
+  register: nfs_group
+
+# - debug:
+#     var: nfs_user
+# - debug:
+#     var: nfs_group
+
+- name: Installing the NFS server
+  apt:
+    name: nfs-kernel-server
+    state: latest
+    update_cache: yes
+
+- name: Determining the storage network 
+  shell:
+    cmd: "ip -o addr show dev br-storage | grep -v inet6 | awk '{ print $4 }' | awk -F. '{ printf \"%s.%s.%s.0\", $1,$2,$3 }'"
+  register: storage_address
+
+- name: Adding NFS shares to /etc/exports
+  template:
+    dest: /etc/exports
+    src: exports.j2
+    backup: yes
+  when: storage_address.rc == 0 and nfs_user.rc == 0 and nfs_group.rc == 0
+  notify: restart nfs-server

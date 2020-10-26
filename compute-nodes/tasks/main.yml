@@ -1,0 +1,13 @@
+---
+# tasks file for compute-nodes
+
+# Set up networking using the role networking
+
+- name: Setting up networking in compute nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: compute
+  tags:
+  - networking_openstack
+  - networking_compute_nodes

@@ -1,0 +1,13 @@
+---
+# tasks file for cinder-nodes
+
+# Set up networking using the networking role 
+
+- name: Setting up networking in cinder nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: cinder
+  tags:
+  - networking_openstack
+  - networking_cinder_nodes

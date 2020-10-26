@@ -78,6 +78,9 @@ logging00
 # swift01
 # swift02
 
+[lvm_nodes:children]
+cinder_nodes
+
 [infrastructure_nodes:children]
 controller_nodes
 compute_nodes

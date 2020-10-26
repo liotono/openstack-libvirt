@@ -1,0 +1,13 @@
+---
+# tasks file for logging-nodes
+
+# Set up networking using the role networking
+
+- name: Setting up networking in logging nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: logging
+  tags:
+  - networking_openstack
+  - networking_logging_nodes

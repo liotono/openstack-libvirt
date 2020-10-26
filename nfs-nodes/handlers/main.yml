@@ -1,0 +1,9 @@
+---
+# handlers file for nfs-nodes
+
+# handlers:
+- name: restart nfs-server
+  systemd:
+    enabled: yes
+    name: nfs-server
+    state: restarted

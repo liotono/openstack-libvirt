@@ -1,0 +1,29 @@
+---
+# tasks file for swift-nodes
+
+# Set up networking using the role networking
+
+- name: Setting up networking in swift nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: swift
+  tags:
+  - networking_openstack
+  - networking_swift_nodes
+
+- name: Formatting the devices to be used by the swift node
+  filesystem:
+    fstype: xfs
+    dev: "/dev/{{ item }}"
+    opts: "-f -i size=1024 -L {{ item }}"
+  with_items: "{{ swift_devices }}"
+
+- name: Add the recently formmated devices to fstab
+  mount:
+    fstype: xfs
+    opts: noatime,nodiratime,nobarrier,logbufs=8,noauto
+    path: "/srv/node/{{ item }}"
+    src: "LABEL={{ item }}"
+    state: mounted
+  with_items: "{{ swift_devices }}"

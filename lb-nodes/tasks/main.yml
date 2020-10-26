@@ -1,0 +1,12 @@
+---
+# tasks file for lb-nodes
+
+# Set up networking using the role networking
+- name: Setting up networking in load balancer nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: lb
+  tags:
+  - networking_openstack
+  - networking_lb_nodes

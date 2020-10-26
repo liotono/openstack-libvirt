@@ -1,0 +1,12 @@
+---
+# tasks file for ceph-nodes
+
+# Set up networking using the role networking
+- name: Setting up networking in ceph nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: ceph
+  tags:
+  - networking_openstack
+  - networking_ceph_nodes

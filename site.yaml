@@ -8,139 +8,114 @@
   tags:
   - updatingnodes
 
-- name: Setting up networking in load balancer nodes
+# Setting up load balancer nodes
+
+- name: Setting up load balancer nodes
   hosts: lb_nodes
   become: yes
   roles:
-  - networking
+  - lb-nodes
   tags:
-  - networking
-  - networking_lbs
-  vars:
-    bridges:
-    - br-mgmt
-    nodetype: lb
+  - setup_lbnodes
 
-- name: Setting up networking in controller nodes
+# Setting up controller nodes
+
+- name: Setting up controller nodes
   hosts: controller_nodes
   become: yes
   roles:
-  - networking
+  - controller-nodes
   tags:
-  - networking
-  - networking_controllers
-  vars:
-    bridges:
-    - br-mgmt
-    - br-storage
-    - br-provider
-    - br-vxlan
-    - br-vlan
-    nodetype: controller
+  - setup_controller_nodes
 
-- name: Setting up networking in compute nodes
+# Setting up compute nodes
+
+- name: Setting up compute nodes
   hosts: compute_nodes
   become: yes
   roles:
-  - networking
+  - compute-nodes
   tags:
-  - networking
-  - networking_computes
-  vars:
-    bridges:
-    - br-mgmt
-    - br-vxlan
-    - br-storage
-    - br-vlan
-    nodetype: compute
+  - set_compute_nodes
 
-- name: Setting up networking in network nodes
+# Setting up network nodes
+
+- name: Setting up network nodes
   hosts: network_nodes
   become: yes
   roles:
-  - networking
+  - network-nodes
   tags:
-  - networking
-  - networking_network
-  vars:
-    bridges:
-    - br-mgmt
-    - br-vxlan
-    - br-vlan
-    - br-provider
-    nodetype: network
+  - setup_network_nodes
 
-- name: Setting up networking in cinder nodes
+# Setting up cinder nodes
+
+- name: Setting up cinder nodes
   hosts: cinder_nodes
   become: yes
   roles:
-  - networking
+  - cinder-nodes
   tags:
-  - networking
-  - networking_cinder
-  vars:
-    bridges:
-    - br-mgmt
-    - br-storage
-    nodetype: cinder
+  - setup_cinder_nodes
 
-- name: Setting up networking in ceph nodes
+# Setting up storage nodes
+
+- name: Setting up storage nodes (ceph)
   hosts: ceph_nodes
   become: yes
   roles:
-  - networking
+  - ceph-nodes
   tags:
-  - networking
-  - networking_ceph
-  vars:
-    bridges:
-    - br-mgmt
-    - br-storage
-    nodetype: ceph
+  - setup_ceph_nodes
 
-- name: Setting up networking in nfs nodes
+- name: Setting up storage nodes (NFS)
   hosts: nfs_nodes
   become: yes
   roles:
-  - networking
+  - nfs-nodes
   tags:
-  - networking
-  - networking_nfs
-  - nfs_nodes
-  vars:
-    bridges:
-    - br-mgmt
-    - br-storage
-    nodetype: nfs
+  - setup_nfs_nodes
 
-- name: Setting up networking in logging nodes
+- name: Setting up storage nodes (LVM)
+  hosts: lvm_nodes
+  become: yes
+  roles:
+  - lvm-nodes
+  vars:
+    pvs_devices: "/dev/vdb"
+    cinder_vg: "cinder-volumes"
+  tags:
+  - setup_lvm_nodes
+
+# Setting up logging nodes
+
+- name: Setting up logging nodes
   hosts: logging_nodes
   become: yes
   roles:
-  - networking
+  - logging-nodes
   tags:
-  - networking
-  - networking_logging
-  vars:
-    bridges:
-    - br-mgmt
-    nodetype: logging
+  - setup_logging_nodes
 
-- name: Setting up networking in swift nodes
+# Setting up swift nodes
+
+- name: Setting up swift nodes
   hosts: swift_nodes
   become: yes
   roles:
-  - networking
-  tags:
-  - networking
-  - networking_swift
+  - swift-nodes
   vars:
-    bridges:
-    - br-mgmt
-    - br-storage
-    nodetype: swift
+    swift_devices:
+    - vdb
+    - vdc
+    - vdd
+    - vde
+    - vdf
+  tags:
+  - setup_swift_nodes
 
-# Used IP ddresses
+# Gatther used IP ddresses
+
 - name: Gathering used IP addresses
   hosts: all
   tasks:
@@ -151,120 +126,6 @@
     when: interfaces.rc == 0
   tags:
   - used_ips
-
-- name: Creating volume group cinder-volumes in cinder nodes
-  hosts: cinder_nodes
-  become: yes
-  tasks:
-  - lvg:
-      vg: cinder-volumes
-      pvs: /dev/vdb
-  tags:
-  - cinder-volgroup
-
-- name: Setting up Swift nodes
-  hosts: swift_nodes
-  become: yes
-  tasks:
-  - name: Formatting the devices to be used by the swift node
-    filesystem:
-      fstype: xfs
-      dev: "/dev/{{ item }}"
-      opts: "-f -i size=1024 -L {{ item }}"
-    with_items:
-    - vdb
-    - vdc
-    - vdd
-    - vde
-    - vdf
-  - name: Add the recently formmated devices to fstab
-    mount:
-      fstype: xfs
-      opts: noatime,nodiratime,nobarrier,logbufs=8,noauto
-      path: "/srv/node/{{ item }}"
-      src: "LABEL={{ item }}"
-      state: mounted
-    with_items:
-    - vdb
-    - vdc
-    - vdd
-    - vde
-    - vdf
-
-- name: Setting up NFS nodes so they can work with OpenStack
-  hosts: nfs_nodes
-  become: yes
-  tasks:
-  - name: Creating a primary partition on the disk which will be exported as an NFS share
-    parted:
-      device: /dev/vdb
-      number: 1
-      label: gpt
-      name: 'nfs-partiton'
-      state: present
-  - name: Formatting the recently created disk partition
-    filesystem:
-      fstype: ext4
-      dev: /dev/vdb1
-  - name: Creating the group nfs-group
-    group:
-      name: nfs-group
-  - name: Creating the user nfs-user and adding it to the nfs-group
-    user:
-      name: nfs-user
-      group: nfs-group
-  - name: Creating the directory in which the disk will be mounted
-    file:
-      path: "/mnt/{{ ansible_host }}-vol1"
-      state: directory
-  - name: Mounting the disk and make this persistent across reboots
-    mount:
-      fstype: ext4
-      opts: defaults
-      path: "/mnt/{{ ansible_host }}-vol1"
-      src: /dev/vdb1 
-      state: mounted
-  - name: Changing recursively the owner and owner group of the directory to be exported
-    file:
-      path: "/mnt/{{ ansible_host }}-vol1"
-      owner: nfs-user
-      group: nfs-group
-      state: directory
-      recurse: yes
-  - name: Determining the UID assigned to the nfs-user user
-    shell:
-      cmd: "awk -F: '/nfs-user/ { print $3 }' /etc/passwd"
-    register: nfs_user
-  - name: Determining the GID assigned to the nfs-group group
-    shell:
-      cmd: "awk -F: '/nfs-group/ { print $3 }' /etc/group"
-    register: nfs_group
-  - debug:
-      var: nfs_user
-  - debug:
-      var: nfs_group
-  - name: Installing the NFS server
-    apt:
-      name: nfs-kernel-server
-      state: latest
-      update_cache: yes
-  - name: Determining the storage network 
-    shell:
-      cmd: "ip -o addr show dev br-storage | grep -v inet6 | awk '{ print $4 }' | awk -F. '{ printf \"%s.%s.%s.0\", $1,$2,$3 }'"
-    register: storage_address
-  - name: Adding NFS shares to /etc/exports
-    template:
-      dest: /etc/exports
-      src: exports.j2
-      backup: yes
-    when: storage_address.rc == 0 and nfs_user.rc == 0 and nfs_group.rc == 0
-  - name: Restarting the nfs-server service
-    systemd:
-      enabled: yes
-      name: nfs-server
-      state: restarted
-  tags:
-  - nfs_nodes
 
 - name: Cloning, preparing and bootstrapping OpenStack-Ansible
   hosts: deployment_nodes
@@ -304,30 +165,3 @@
       dest: /root/.ssh/authorized_keys
   tags:
   - copyingpublickey
-
-- name: Installing OpenStack
-  hosts: deployment_nodes
-  become: yes
-  tasks:
-  - name: Executing openstack-ansible setup-hosts.yml
-    shell:
-      cmd: openstack-ansible setup-hosts.yml >/tmp/setup-hosts.log
-      chdir: /opt/openstack-ansible/playbooks
-  - name: Executing openstack-ansible haproxy-install.yml
-    shell:
-      cmd: openstack-ansible haproxy-install.yml >/tmp/haproxy-install.log
-      chdir: /opt/openstack-ansible/playbooks
-  - name: Executing openstack-ansible setup-infrastructure.yml
-    shell:
-      cmd: openstack-ansible setup-infrastructure.yml >/tmp/setup-infrastructure.log
-      chdir: /opt/openstack-ansible/playbooks
-  - name: Installing git in containers
-    shell:
-      cmd: ansible -m shell -a 'apt-get install git' heat_api,placement_api,horizon_container
-      chdir: /opt/openstack-ansible/playbooks
-  - name: Executing openstack-ansible setup-openstack.yml
-    shell:
-      cmd: openstack-ansible setup-openstack.yml >/tmp/setup-openstack.log
-      chdir: /opt/openstack-ansible/playbooks
-  tags:
-  - install_openstack

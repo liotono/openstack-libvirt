@@ -1,2 +1,8 @@
 ---
 # handlers file for networking
+
+# handlers:
+- name: restart networking.service
+  systemd:
+    state: restarted
+    name: networking

@@ -1,38 +1,28 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+This role basically helps to set up networking in Ubuntu based on the templates that are located under the directory templates.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+The role requires netplan to be disabled in Ubuntu as it creates an interface configuration file under /etc/network/ and then restarts the networking service to bring up the interfaces in such file.
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+This role only accepts one variable:
 
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- nodetype: The node type to set up networking for.
+    Options: ceph, cinder, compute, controller, lb, logging, network, nfs, swift, etc. 
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
+    - name: Setting up networking in controller nodes
+      hosts: controller_nodes
+      become: yes
       roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+      - networking
+      vars:
+        nodetype: controller

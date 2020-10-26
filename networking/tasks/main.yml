@@ -12,8 +12,5 @@
     dest: /etc/network/interfaces
   tags:
   - networking_files_controllers
-
-- name: Restarting networking.service so the new bridges come up
-  systemd:
-    state: restarted
-    name: networking
+  notify:
+  - restart networking.service

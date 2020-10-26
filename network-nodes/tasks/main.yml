@@ -1,0 +1,12 @@
+---
+# tasks file for network-nodes
+
+# Set up networking using the networking role
+- name: Setting up networking in network nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: network
+  tags:
+  - networking_openstack
+  - networking_network_nodes

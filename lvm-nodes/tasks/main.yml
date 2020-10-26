@@ -1,0 +1,21 @@
+---
+# tasks file for lvm-nodes
+
+# Set up networking using the role networking
+# - name: Setting up networking in LVM nodes
+#   include_role:
+#     name: networking
+#   vars:
+#     nodetype: cinder
+#   tags:
+#   - networking_openstack
+#   - networking_lvm_nodes
+
+# Creating cinder volume group
+
+- name: Creating volume group cinder-volumes in LVM nodes
+  lvg:
+    vg: "{{ cinder_vg }}"
+    pvs: "{{ pvs_devices }}"
+  tags:
+  - create_cinder_volgroup

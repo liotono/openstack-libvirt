@@ -1,0 +1,11 @@
+---
+# tasks file for controller-nodes
+
+- name: Setting up networking in controller nodes
+  include_role:
+    name: networking
+  vars:
+    nodetype: controller
+  tags:
+  - networking_openstack
+  - networking_controller_nodes
