@@ -27,6 +27,9 @@
   - controller-nodes
   tags:
   - setup_controller_nodes
+  vars:
+     lxc_vg_name: "lxc-vg"
+     lxc_pvs: "/dev/vdb"
 
 # Setting up compute nodes
 
@@ -135,7 +138,7 @@
   tags:
   - openstackansiblesetup
   vars:
-    openstack_version: stable/train
+    openstack_version: stable/rocky
 
 - name: Fetching the public key from the deployment node
   hosts: deployment_nodes

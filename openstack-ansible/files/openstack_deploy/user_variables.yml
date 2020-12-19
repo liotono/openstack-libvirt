@@ -1,63 +1,103 @@
----
-cinder_iscsi_helper: tgtadm
-cinder_iscsi_iotype: fileio
-cinder_iscsi_num_targets: 100
-cinder_iscsi_port: 3260
 
-## Ceph cluster fsid (must be generated before first run)
-## Generate a uuid using: python -c 'import uuid; print(str(uuid.uuid4()))'
+# (Optional) If the vg name is not lxc, you can change the name of the volume group you want containers to build on
+lxc_container_vg_name: lxc-vg
+lxc_container_backing_store: lvm
+
+# Ceph cluster fsid
 generate_fsid: false
 fsid: 32d556e2-3a78-4a90-8e89-5ccd7bd6bef0
 
-# Not sure why this has to be defined again if it has already been defined
-# in openstack_user_config.yml
-cidr_networks:
-  container: 172.29.236.0/24
-  tunnel: 172.29.240.0/24
-  storage: 172.29.244.0/24
-
-## ceph-ansible settings
-## See https://github.com/ceph/ceph-ansible/tree/master/group_vars for
-## additional configuration options available.
-monitor_address_block: "172.29.236.0/24"
-public_network: "172.29.236.0/24"
-cluster_network: "172.29.244.0/24"
-journal_size: 10240 # size in MB
-# ceph-ansible automatically creates pools & keys for OpenStack services
-openstack_config: true
-cinder_ceph_client: cinder
-glance_ceph_client: glance
+# Ceph backed glance
 glance_default_store: rbd
+glance_notification_driver: noop
+glance_ceph_client: glance
 glance_rbd_store_pool: images
+glance_rbd_store_chunk_size: 8
 nova_libvirt_images_rbd_pool: vms
+cinder_ceph_client: cinder
+cinder_service_backup_program_enabled: True
+ceph_client_package_state: "latest"
+ceph_pkg_source: "ceph"
+ceph_stable_release: mimic
+cephx: true
 
-ceph_repository: community
-ceph_mirror: http://download.ceph.com
-ceph_stable_key: https://download.ceph.com/keys/release.asc
-ceph_stable_release: nautilus
-ceph_stable_repo: "{{ ceph_mirror }}/debian-{{ ceph_stable_release }}"
-
-# Devices to be used with Ceph
+# Devices to be used for Ceph
 devices:
   - /dev/vdb
   - /dev/vdc
   - /dev/vdd
 
-# For swift
-# global_overrides:
-#   swift:
-#     part_power: 7
-#     storage_network: br-storage
-#     replication_network: br-storage
-#     drives:
-#       - name: vdb
-#       - name: vdc
-#       - name: vdd
-#       - name: vde
-#       - name: vdf
-#     mount_point: /srv
-#     storage_policies:
-#       - policy:
-#           name: default
-#           index: 0
-#           default: True
+osd_scenario: collocated
+
+openstack_config: true
+# ceph_repository: community
+# ceph_mirror: http://download.ceph.com
+# ceph_stable_key: https://download.ceph.com/keys/release.asc
+# ceph_stable_release: mimic
+# ceph_stable_repo: "{{ ceph_mirror }}/debian-{{ ceph_stable_release }}"
+
+# ceph-mon_hosts has already been defined in openstack_user_config.yml
+# ceph_mons:
+#   - 10.73.114.150
+#   - 10.73.114.151
+#   - 10.73.114.152
+
+
+cinder_cinder_conf_overrides:
+  DEFAULT:
+    default_volume_type: ceph
+    debug: false
+
+cidr_networks:
+  container: 172.29.236.0/24
+  tunnel: 172.29.240.0/24
+  storage: 172.29.244.0/24
+
+# Ceph variables
+monitor_address_block: "{{ cidr_networks.container }}"
+public_network: "{{ cidr_networks.container }}"
+cluster_network: "{{ cidr_networks.storage }}"
+
+horizon_time_zone: 'Asia/Kolkata'
+
+# openstack_host_distro_packages:
+#   - apparmor-utils
+#   - apt-transport-https
+#   - bridge-utils
+#   - build-essential
+#   - cgroup-lite
+#   - curl
+#   - dmeventd
+#   - dstat
+#   - ebtables
+#   - htop
+#   - iptables
+#   - irqbalance
+#   - libkmod-dev
+#   - libkmod2
+#   - lvm2
+#   - python-software-properties
+#   - python-dev
+#   - rsync
+#   - rsyslog
+#   - sshpass
+#   - sysstat
+#   - time
+#   - vlan
+#   - wget
+#   - git
+#   - libsystemd-dev
+#   - libsystemd0
+#   - python3-systemd
+
+ceph_conf_overrides:
+ client:
+  rbd_cache_size: 134217728
+  rbd_cache_max_dirty: 50331648
+  rbd_cache_max_dirty_age: 15
+  rbd_cache_target_dirty: 33554432
+ osd:
+  osd_crush_initial_weight: 0
+
+nova_novncproxy_git_repo: "https://github.com/novnc/noVNC"
+nova_spicehtml5_git_repo: "https://gitlab.freedesktop.org/spice/spice-html5"

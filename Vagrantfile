@@ -34,15 +34,19 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 # Node types
 # DON'T FORGET TO UPDATE THE ANSIBLE INVENTORY FILE (inventory.txt)
 deployment = { :count => 0, :start_ip => 10, :memory => 5120, cpus: 4 }
-lb         = { :count => 1, :start_ip => 20, :memory => 2048, cpus: 1 }
-controller = { :count => 3, :start_ip => 30, :memory => 4096, cpus: 2 }
-compute    = { :count => 3, :start_ip => 40, :memory => 4096, cpus: 4 }
-network    = { :count => 1, :start_ip => 50, :memory => 2048, cpus: 1 }
-ceph       = { :count => 4, :start_ip => 60, :memory => 2048, cpus: 1 }
-cinder     = { :count => 1, :start_ip => 70, :memory => 2048, cpus: 1 }
+lb         = { :count => 2, :start_ip => 20, :memory => 2048, cpus: 1 }
+controller = { :count => 3, :start_ip => 30, :memory => 6144, cpus: 2 }
+compute    = { :count => 4, :start_ip => 40, :memory => 4096, cpus: 4 }
+network    = { :count => 0, :start_ip => 50, :memory => 2048, cpus: 1 }
+ceph       = { :count => 6, :start_ip => 60, :memory => 2048, cpus: 1 }
+cinder     = { :count => 0, :start_ip => 70, :memory => 2048, cpus: 1 }
 swift      = { :count => 0, :start_ip => 80, :memory => 2048, cpus: 1 }
 logging    = { :count => 1, :start_ip => 90, :memory => 1024, cpus: 1 }
 nfs        = { :count => 0, :start_ip =>100, :memory => 2048, cpus: 1 }
+
+# This variable is used to append a prefix to the
+# device name
+PREFIX = "upgrade"
 
 Vagrant.configure("2") do |config|
 
@@ -53,29 +57,20 @@ Vagrant.configure("2") do |config|
 
   # Define the pool from which the 
   config.vm.provider :libvirt do |libvirt|
-    libvirt.storage_pool_name = "virsh-ssd-pool"
+    libvirt.storage_pool_name = "virsh-hdd-pool"
   end
 
   # Creating the deployment node
   deployment[:count].times do |i|
-    hostname = "deployment%02d" % [i]
+    hostname = "#{PREFIX}-deployment%02d" % [i]
     ip = "#{deployment[:start_ip]+i}"
-    config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+    config.vm.define "#{PREFIX}-#{hostname}" do |box|
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
       # Managment network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
-      # Public network 192.168.15.0/24
-      # box.vm.network :public_network,
-      #   type: 'bridge',
-      #   dev: 'openstack-sw',
-      #   mode: 'bridge',
-      #   ovs: true,
-      #   ip: "192.168.15.1#{ip}",
-      #   netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
         domain.memory = deployment[:memory]
         domain.cpus = deployment[:cpus]
@@ -85,27 +80,16 @@ Vagrant.configure("2") do |config|
 
  # Creating the LB nodes
  lb[:count].times do |i|
-    hostname = "lb%02d" % [i]
+    hostname = "#{PREFIX}-lb%02d" % [i]
     ip = "#{lb[:start_ip]+i}"
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
-      # For public network access
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond1", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond1", ovs: true, auto_config: false
-      # Public network 192.168.15.0/24
-      # box.vm.network :public_network,
-      #   type: 'bridge',
-      #   dev: 'openstack-sw',
-      #   mode: 'bridge',
-      #   ovs: true,
-      #   ip: "192.168.15.1#{ip}",
-      #   netmask: "255.255.255.0"
       box.vm.provider :libvirt do |domain|
         domain.memory = lb[:memory]
         domain.cpus = lb[:cpus]
@@ -115,13 +99,11 @@ Vagrant.configure("2") do |config|
 
   # Creating the controller nodes
   controller[:count].times do |i|
-    hostname = "controller%02d" % [i]
+    hostname = "#{PREFIX}-controller%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # Networking
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond1", ovs: true, auto_config: false
@@ -129,19 +111,18 @@ Vagrant.configure("2") do |config|
       box.vm.provider :libvirt do |domain|
         domain.memory = controller[:memory]
         domain.cpus = controller[:cpus]
+        domain.storage :file, :size => '120G'
       end
     end
   end
 
   # Creating the compute nodes
   compute[:count].times do |i|
-    hostname = "compute%02d" % [i]
+    hostname = "#{PREFIX}-compute%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt, storage and vxlan networks
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond1", ovs: true, auto_config: false
@@ -157,24 +138,15 @@ Vagrant.configure("2") do |config|
 
   # Creating the network nodes
   network[:count].times do |i|
-    hostname = "network%02d" % [i]
+    hostname = "#{PREFIX}-network%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt, storage, vxlan and vlan networks
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond1", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond1", ovs: true, auto_config: false
-      # provider network
-      # box.vm.network :public_network,
-      #   type: 'bridge',
-      #   dev: 'openstack-sw',
-      #   mode: 'bridge',
-      #   ovs: true,
-      #   auto_config: false
       box.vm.provider :libvirt do |domain|
         domain.memory = network[:memory]
         domain.cpus = network[:cpus]
@@ -184,13 +156,11 @@ Vagrant.configure("2") do |config|
 
   # Creating the cinder nodes
   cinder[:count].times do |i|
-    hostname = "cinder%02d" % [i]
+    hostname = "#{PREFIX}-cinder%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt and storage network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
@@ -203,13 +173,11 @@ Vagrant.configure("2") do |config|
 
   # Creating the ceph nodes
   ceph[:count].times do |i|
-    hostname = "ceph%02d" % [i]
+    hostname = "#{PREFIX}-ceph%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt and storage network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
@@ -224,13 +192,11 @@ Vagrant.configure("2") do |config|
 
   # Creating the swift nodes
   swift[:count].times do |i|
-    hostname = "swift%02d" % [i]
+    hostname = "#{PREFIX}-swift%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt and storage network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
@@ -247,13 +213,11 @@ Vagrant.configure("2") do |config|
 
 # Creating the NFS storage nodes
   nfs[:count].times do |i|
-    hostname = "nfs%02d" % [i]
+    hostname = "#{PREFIX}-nfs%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt and storage network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
@@ -266,18 +230,17 @@ Vagrant.configure("2") do |config|
 
   # Creating the logging nodes
   logging[:count].times do |i|
-    hostname = "logging%02d" % [i]
+    hostname = "#{PREFIX}-logging%02d" % [i]
     config.vm.define "#{hostname}" do |box|
-      box.vm.box = "ubuntu-bionic-bonding"
+      box.vm.box = "generic/ubuntu1604"
       box.vm.hostname = "#{hostname}"
       box.vm.synced_folder ".", "/vagrant", disabled: true
-      box.vm.provision :shell, inline: "sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 10"
-      # mgmt and storage network
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw0', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.network :public_network, type: 'network', network_name: 'openstack-sw1', portgroup: "vlan-bond0", ovs: true, auto_config: false
       box.vm.provider :libvirt do |domain|
         domain.memory = logging[:memory]
         domain.cpus = logging[:cpus]
+        domain.storage :file, :size => '20G'
       end
     end
   end

@@ -1,6 +1,11 @@
 ---
 # tasks file for openstack-ansible
 
+- name: Installing mising packages
+  apt:
+     name: ['python-yaml']
+     state: present
+
 - name: Cloning the OpenStack-Ansible repository on the deployment node
   git:
     repo: https://opendev.org/openstack/openstack-ansible

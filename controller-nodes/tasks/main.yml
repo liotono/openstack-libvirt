@@ -9,3 +9,11 @@
   tags:
   - networking_openstack
   - networking_controller_nodes
+
+- name: Set up the volume group for LXC containers
+  lvg:
+     vg: "{{ lxc_vg_name }}"
+     pvs: "{{ lxc_pvs }}"
+  when:
+     - lxc_vg_name is defined
+     - lxc_pvs is defined

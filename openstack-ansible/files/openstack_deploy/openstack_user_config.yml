@@ -19,6 +19,12 @@ used_ips:
 - "172.29.244.61"
 - "172.29.236.62"
 - "172.29.244.62"
+- "172.29.236.63"
+- "172.29.244.63"
+- "172.29.236.64"
+- "172.29.244.64"
+- "172.29.236.65"
+- "172.29.244.65"
 - "172.29.236.90"
 - "172.29.236.50"
 - "172.29.244.50"
@@ -36,6 +42,9 @@ used_ips:
 - "172.29.236.42"
 - "172.29.244.42"
 - "172.29.240.42"
+- "172.29.236.43"
+- "172.29.244.43"
+- "172.29.240.43"
 - "172.29.236.30"
 - "172.29.244.30"
 - "172.29.240.30"
@@ -47,6 +56,8 @@ used_ips:
 - "172.29.240.32"
 - "172.29.236.20"
 - "192.168.15.120"
+- "172.29.236.21"
+- "192.168.15.121"
 
 global_overrides:
   internal_lb_vip_address: 172.29.236.20
@@ -71,10 +82,11 @@ global_overrides:
         - cinder_api
         - cinder_volume
         - nova_compute
+        - mons
       type: "raw"
       container_bridge: "br-storage"
-      container_type: "veth"
       container_interface: "eth2"
+      container_type: "veth"
       container_mtu: "9000"
       ip_from_q: "storage"
   - network:
@@ -116,13 +128,16 @@ _infrastructure_hosts: &infrastructure_hosts
 
 shared-infra_hosts: *infrastructure_hosts
 
+repo-infra_hosts: *infrastructure_hosts
+
 os-infra_hosts: *infrastructure_hosts
 
 identity_hosts: *infrastructure_hosts
 
-placement-infra_hosts: *infrastructure_hosts
+storage-infra_hosts: *infrastructure_hosts
 
-image_hosts: *infrastructure_hosts
+# placement-infra_hosts: *infrastructure_hosts
+# image_hosts: *infrastructure_hosts
 
 compute_hosts:
   compute00:
@@ -131,12 +146,11 @@ compute_hosts:
     ip: 172.29.236.41
   compute02:
     ip: 172.29.236.42
+  compute03:
+    ip: 172.29.236.43
 
-compute-infra_hosts: *infrastructure_hosts
-
-storage-infra_hosts: *infrastructure_hosts
-
-orchestration_hosts: *infrastructure_hosts
+# compute-infra_hosts: *infrastructure_hosts
+# orchestration_hosts: *infrastructure_hosts
 
 storage_hosts:
   controller00:
@@ -144,58 +158,56 @@ storage_hosts:
     container_vars:
       cinder_backends:
         limit_container_types: cinder_volume
-        lvm:
-          volume_group: cinder-volumes
-          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
-          volume_backend_name: LVM_iSCSI
-          iscsi_ip_address: "172.29.244.70"
         rbd:
           volume_driver: cinder.volume.drivers.rbd.RBDDriver
           rbd_pool: volumes
           rbd_ceph_conf: /etc/ceph/ceph.conf
-          rbd_store_chunk_size: 8
+          rbd_flatten_volume_from_snapshot: 'false'
+          rbd_max_clone_depth: 5
+          rbd_store_chunk_size: 4
+          rados_connect_timeout: -1
+          glance_api_version: 2
           volume_backend_name: rbddriver
           rbd_user: "{{ cinder_ceph_client }}"
           rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
-          report_discard_supported: true
   controller01:
     ip: 172.29.236.31
     container_vars:
       cinder_backends:
         limit_container_types: cinder_volume
-        lvm:
-          volume_group: cinder-volumes
-          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
-          volume_backend_name: LVM_iSCSI
-          iscsi_ip_address: "172.29.244.70"
         rbd:
           volume_driver: cinder.volume.drivers.rbd.RBDDriver
           rbd_pool: volumes
           rbd_ceph_conf: /etc/ceph/ceph.conf
-          rbd_store_chunk_size: 8
+          rbd_flatten_volume_from_snapshot: 'false'
+          rbd_max_clone_depth: 5
+          rbd_store_chunk_size: 4
+          rados_connect_timeout: -1
+          glance_api_version: 2
           volume_backend_name: rbddriver
           rbd_user: "{{ cinder_ceph_client }}"
           rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
-          report_discard_supported: true
   controller02:
     ip: 172.29.236.32
     container_vars:
       cinder_backends:
         limit_container_types: cinder_volume
-        lvm:
-          volume_group: cinder-volumes
-          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
-          volume_backend_name: LVM_iSCSI
-          iscsi_ip_address: "172.29.244.70"
         rbd:
           volume_driver: cinder.volume.drivers.rbd.RBDDriver
           rbd_pool: volumes
           rbd_ceph_conf: /etc/ceph/ceph.conf
-          rbd_store_chunk_size: 8
+          rbd_flatten_volume_from_snapshot: 'false'
+          rbd_max_clone_depth: 5
+          rbd_store_chunk_size: 4
+          rados_connect_timeout: -1
+          glance_api_version: 2
           volume_backend_name: rbddriver
           rbd_user: "{{ cinder_ceph_client }}"
           rbd_secret_uuid: "{{ cinder_ceph_client_uuid }}"
-          report_discard_supported: true
+
+log_hosts:
+   logging00:
+      ip: 172.29.236.90
 
 # Ceph
 ceph-mon_hosts: *infrastructure_hosts
@@ -209,11 +221,17 @@ ceph-osd_hosts:
     ip: 172.29.236.61
   ceph02:
     ip: 172.29.236.62
+  ceph03:
+    ip: 172.29.236.63
+  ceph04:
+    ip: 172.29.236.64
+  ceph05:
+    ip: 172.29.236.65
 
 haproxy_hosts:
   lb00:
     ip: 172.29.236.20
+  lb01:
+    ip: 172.29.236.21
 
-network_hosts:
-  network00:
-    ip: 172.29.236.50
+network_hosts: *infrastructure_hosts

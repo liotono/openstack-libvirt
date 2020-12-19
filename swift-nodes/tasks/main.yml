@@ -22,8 +22,8 @@
 - name: Add the recently formmated devices to fstab
   mount:
     fstype: xfs
-    opts: noatime,nodiratime,nobarrier,logbufs=8,noauto
-    path: "/srv/node/{{ item }}"
+    opts: noatime,nodiratime,nobarrier,logbufs=8
+    path: "/srv/{{ item }}"
     src: "LABEL={{ item }}"
     state: mounted
   with_items: "{{ swift_devices }}"

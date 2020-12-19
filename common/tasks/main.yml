@@ -4,33 +4,44 @@
   apt:
     upgrade: dist
 
-- name: Check if the /swapfile has been created
-  stat:
-    path: /swapfile
-  register: output
-  tags:
-  - setupswap
+- name: Adding swap to hosts as add_swap_to_hosts is set to yes
+  block:
 
-- name: Allocating swap file in /swapfile
-  shell: "fallocate -l {{ ansible_memtotal_mb *2 }}M /swapfile"
-  when: output.stat.exists == False
-  tags:
-  - setupswap
+  - name: Check if the /swapfile has been created
+    stat:
+       path: /swapfile
+    register: output
 
-# - name: Filling swap file with zero's
-#   shell: "dd if=/dev/zero of=/swapfile bs=1M count={{ ansible_memtotal_mb *2 }}"
-#   when: output.stat.exists == False
-#   tags:
-#   - setupswap
+  - name: Allocating swap file in /swapfile
+    shell: "fallocate -l {{ ansible_memtotal_mb *2 }}M /swapfile"
+    when: output.stat.exists == False
 
-- name: Setting up the swap file and activating it
-  shell: "chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile"
-  when: output.stat.exists == False
-  tags:
-  - setupswap
+  - name: Setting up the swap file and activating it
+    shell: "chmod 0600 /swapfile && mkswap /swapfile && swapon /swapfile"
+    when: output.stat.exists == False
 
-- name: Adding the swap entry in /etc/fstab to make it persistent
-  shell: "echo '/swapfile swap swap defaults 0 0' >> /etc/fstab"
-  when: output.stat.exists == False
+  - name: Adding the swap entry in /etc/fstab to make it persistent
+    shell: "echo '/swapfile swap swap defaults 0 0' >> /etc/fstab"
+    when: output.stat.exists == False
+
+  when: add_swap_to_hosts | bool
   tags:
-  - setupswap
+     - setupswap
+
+- name: Rebooting nodes and waiting for them to come back
+  reboot:
+     msg: "Reboot initiated by Ansible"
+     connect_timeout: 5
+     post_reboot_delay: 30
+
+- name: Setting up python2 as the default since python2_version is set to true
+  block:
+  - name: Installing python2
+    apt:
+       name: python2.7
+       update_cache: yes
+       state: present
+  - name: Making python2.7 the default
+    shell:
+       cmd: "update-alternatives --install /usr/bin/python python /usr/bin/python2.7 20"
+  when: python2_version | bool
