@@ -1,0 +1,4 @@
+
+.vagrant/
+authorized_keys
+inventory/
