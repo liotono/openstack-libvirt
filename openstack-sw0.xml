@@ -6,7 +6,8 @@
   <portgroup name='vlan-bond1'>
     <vlan trunk='yes'>
       <tag id='240'/>
-      <tag id='100' nativeMode='untagged'/>
+      <tag id='99' nativeMode='untagged'/>
+      <tag id='100'/>
       <tag id='101'/>
       <tag id='102'/>
       <tag id='103'/>
