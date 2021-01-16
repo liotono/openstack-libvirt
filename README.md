@@ -38,10 +38,11 @@ OpenStack environment using Libvirt, Ansible and Vagrant
 1. Set the native VLAN and also the VLANS that are going to be trunked between bridges:
 
     ```
-    ovs-vsctl set port trunk-sw0 trunks=101,102,103,104,105,236,240,244
-    ovs-vsctl set port trunk-sw1 trunks=101,102,103,104,105,236,240,244
-    ovs-vsctl set port trunk-sw0 vlan_mode=native-untagged
-    ovs-vsctl set port trunk-sw1 vlan_mode=native-untagged
+    ovs-vsctl set port trunk-sw0 trunks=100,101,102,103,104,105,236,240,244
+    ovs-vsctl set port trunk-sw1 trunks=100,101,102,103,104,105,236,240,244
+    ovs-vsctl set port trunk-sw0 vlan_mode=native-untagged tag=99
+    ovs-vsctl set port trunk-sw1 vlan_mode=native-untagged tag=99
+    ovs-vsctl set port enp7s0f1 vlan_mode=native-untagged tag=99 (Allow traffic to reach the physical network)
     ```
 
 1. Define the number of nodes: deployment, load balancer, controller, compute, network, ceph, swift, cinder, etc. in Vagrantfile
